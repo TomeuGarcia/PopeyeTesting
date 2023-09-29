@@ -13,6 +13,8 @@ public class WithAnchorState : IPlayerState
     private bool _transitionToAiming;    
     private bool _queuedAnchorAim;
 
+    private float _deltaTime;
+
 
     public WithAnchorState(Player player, Anchor anchor, float maxMoveSpeed, ActionMovesetInputHandler movesetInputHandler)        
     {
@@ -45,8 +47,10 @@ public class WithAnchorState : IPlayerState
         
     }
 
-    public override bool Update()
-    {       
+    public override bool Update(float deltaTime)
+    {
+        _deltaTime = deltaTime;
+
         if (!_anchor.CanMeleeAttack)
         {
             if (_queuedAnchorAim && _movesetInputHandler.IsThrow_Released())
@@ -102,8 +106,8 @@ public class WithAnchorState : IPlayerState
         while (throwIsHoldPressed && timer < duration)
         {
             throwIsHoldPressed = _movesetInputHandler.IsThrow_HoldPressed();
-            timer += Time.deltaTime;
-            await Task.Delay((int)(Time.deltaTime * 1000));
+            timer += _deltaTime;
+            await Task.Delay((int)(_deltaTime * 1000));
         }
 
         _transitionToAiming = throwIsHoldPressed && timer >= duration;

@@ -26,6 +26,6 @@ public abstract class IPlayerState
 
     protected abstract void DoEnter();
     public abstract void Exit();
-    public abstract bool Update();
+    public abstract bool Update(float deltaTime);
 
 }

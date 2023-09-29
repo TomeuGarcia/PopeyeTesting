@@ -38,13 +38,13 @@ public class AimingThrowAnchorState : IPlayerState
         _anchor.HideTrajectory();
     }
 
-    public override bool Update()
+    public override bool Update(float deltaTime)
     {
         if (_movesetInputHandler.IsThrow_HoldPressed())
         {
             if (_aimTimer < _maxAimDuration)
             {
-                _aimTimer += Time.deltaTime;
+                _aimTimer += deltaTime;
             }
             _anchor.ShowTrajectory();
             AimAnchor();            

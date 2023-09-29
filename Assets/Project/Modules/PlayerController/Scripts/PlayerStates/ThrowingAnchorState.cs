@@ -28,7 +28,7 @@ public class ThrowingAnchorState : IPlayerState
 
     }
 
-    public override bool Update()
+    public override bool Update(float deltaTime)
     {
         if (!_anchor.IsOnAir())
         {

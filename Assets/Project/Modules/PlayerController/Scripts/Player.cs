@@ -132,4 +132,5 @@ public class Player : MonoBehaviour, IHealthTarget
     {
         _healthSystem.HealToMax();
     }
+
 }
