@@ -345,13 +345,24 @@ public class Anchor : MonoBehaviour
         await Task.Delay((int)((prepareDuration + duration + recoverDuration)*1000));
     }
 
-    
+    private float GetDistanceFromOwner()
+    {
+        return Vector3.Distance(Position, _springJoint.connectedBody.position);
+    }
+    private Vector3 DirectionTowardsOwner()
+    {
+        return (_springJoint.connectedBody.position - Position).normalized;
+    }
+    private Vector3 DirectionTowardsOwnerOnPlane()
+    {
+        Vector3 directionTowardsOwner = _springJoint.connectedBody.position - Position;
+        directionTowardsOwner.y = 0;
+        return directionTowardsOwner.normalized;
+    }
 
     public bool IsOwnerTensionLimit()
     {
-        Vector3 ownerPosition = _springJoint.connectedBody.position;
-
-        float distance = Vector3.Distance(Position, ownerPosition);
+        float distance = GetDistanceFromOwner();
         float thresholdDistance = _springJoint.maxDistance;
 
         if (distance < thresholdDistance)
@@ -359,7 +370,7 @@ public class Anchor : MonoBehaviour
             return false;
         }
 
-        if (Physics.Raycast(Position, (ownerPosition - Position).normalized, distance, _obstacleLayers))
+        if (Physics.Raycast(Position, DirectionTowardsOwner(), distance, _obstacleLayers))
         {
             return false;
         }
@@ -390,6 +401,56 @@ public class Anchor : MonoBehaviour
     }
 
 
+    public bool CanDoChargedPullAttack()
+    {
+        if (Vector3.Distance(Position, _ownerTransform.position) < 2.0f) return false;
 
+        Vector3 ownerForward = -_ownerTransform.forward;
+        Vector3 directionFromOwner = -DirectionTowardsOwnerOnPlane();
 
+        float angle = Mathf.Acos(Vector3.Dot(ownerForward, directionFromOwner)) * Mathf.Rad2Deg;
+
+        return angle > _canPullAttackAngleThreshold;
+    }
+
+    public async void StartChargedPullAttack(float duration)
+    {
+        Vector3 ownerPosition = _ownerTransform.position;
+        Vector3 ownerForward = -_ownerTransform.forward;
+        float distance = _springJoint.maxDistance * 0.5f;
+
+        Vector3 endPosition = ownerPosition + (ownerForward * distance);
+
+        Vector3 offsetToEnd = endPosition - Position;
+        Vector3 moveDirection = offsetToEnd.normalized;
+
+        transform.DOBlendableMoveBy(offsetToEnd, duration)
+            .SetEase(Ease.InOutSine);
+
+        Vector3 up = Vector3.up;
+        Vector3 right = Vector3.Cross(moveDirection, up).normalized;
+
+        Vector3 moveArchDirection = Vector3.Lerp(up, right, _arch).normalized;
+
+        transform.DOBlendableMoveBy(moveArchDirection * distance, duration / 2)
+            .SetEase(Ease.InOutSine)
+            .OnComplete(() => {
+                transform.DOBlendableMoveBy(-moveArchDirection * distance, duration / 2)
+                .SetEase(Ease.InOutSine);
+            });
+
+        await Task.Delay((int)(duration * 1000));
+
+        //_anchorDamageDealer.DealGroundHitDamage(Position, Mathf.Min(1.0f, distance / _springJoint.maxDistance));
+        
+        _currentState = AnchorStates.OnAir;
+
+        _throwStrength01 = 1.0f;
+
+        SetMovable();
+        _rigidbody.AddForce(Vector3.down * 50f, ForceMode.Impulse);
+    }
+
+    [SerializeField, Range(0, 1)] float _arch = 0;
+    [SerializeField, Range(0f, 180f)] float _canPullAttackAngleThreshold = 20f;
 }

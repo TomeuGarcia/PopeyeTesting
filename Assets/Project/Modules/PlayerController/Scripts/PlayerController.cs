@@ -19,6 +19,13 @@ public class PlayerController : MonoBehaviour
     [SerializeField, Range(0.0f, 1000.0f)] private float _lookSpeed = 700.0f;
     [SerializeField, Range(0.0f, 1.0f)] private float _blendWithVelocityDirection = 0.0f;
     public Vector3 LookDirection => -_lookTransform.forward;
+    private bool _canRotate = true;
+    public bool CanRotate
+    {
+        get { return _canRotate; }
+        set { _canRotate = value; }
+    }
+
 
     [Header("VELOCITY")]
     [SerializeField, Range(0.0f, 100.0f)] private float _maxSpeed = 10.0f;
@@ -75,7 +82,7 @@ public class PlayerController : MonoBehaviour
     private void Awake()
     {
         OnValidate();
-
+        
         _material = _renderer.material;
 
         if (MovementInputHandler == null)
@@ -108,7 +115,10 @@ public class PlayerController : MonoBehaviour
 
     private void LateUpdate()
     {
-        UpdateLookTransform();
+        if (_canRotate)
+        {
+            UpdateLookTransform();
+        }        
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -274,4 +284,7 @@ public class PlayerController : MonoBehaviour
     {
         _rigidbody.AddForce(pushForce, ForceMode.Impulse);
     }
+
+
+
 }
