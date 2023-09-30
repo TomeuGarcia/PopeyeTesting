@@ -15,6 +15,10 @@ public class WithoutAnchorState : IPlayerState
     private float _attractDuration;
     private float _attractInvulnerableDuration;
 
+    private float _canGrabAnchorDistance;
+
+    private bool _queuedPullAttack;
+
 
     public WithoutAnchorState(Player player, Anchor anchor, float maxMoveSpeed, float maxMoveSpeedPullingAnchor,
         ActionMovesetInputHandler movesetInputHandler)
@@ -27,6 +31,7 @@ public class WithoutAnchorState : IPlayerState
         _movesetInputHandler = movesetInputHandler;
         _attractDuration = 0.3f;
         _attractInvulnerableDuration = 0.5f;
+        _canGrabAnchorDistance = 3.0f;
     }
 
 
@@ -40,6 +45,8 @@ public class WithoutAnchorState : IPlayerState
             _anchor.SetPullMovable();
             _playerController.MaxSpeed = _maxMoveSpeedPullingAnchor;
         }
+
+        _queuedPullAttack = _movesetInputHandler.IsPullAttack_HoldPressed();
     }
 
     public override void Exit()
@@ -47,7 +54,7 @@ public class WithoutAnchorState : IPlayerState
 
     }
 
-    public override bool Update()
+    public override bool Update(float deltaTime)
     {
         if (_ownerIsBeingAttracted)
         {
@@ -89,14 +96,14 @@ public class WithoutAnchorState : IPlayerState
             AnchorAttract();
         }
 
-        // TODO
-        /*
-        if (_movesetInputHandler.IsPullAttack_Pressed())
+        
+        if ((_movesetInputHandler.IsPullAttack_HoldPressed() || _queuedPullAttack) && _anchor.CanDoChargedPullAttack())
         {
+            _anchor.SnapToFloorAndSetStill();
+
             _nextState = States.PlacedAnchorPullAttack;
             return true;
-        }
-        */
+        }        
 
 
         return false;
@@ -111,7 +118,7 @@ public class WithoutAnchorState : IPlayerState
         Vector3 playerPlanePosition = _playerController.transform.position;
         playerPlanePosition.y = 0f;
 
-        bool isWithinGrabDistance = Vector3.Distance(anchorPlanePosition, playerPlanePosition) < 3.0f;
+        bool isWithinGrabDistance = Vector3.Distance(anchorPlanePosition, playerPlanePosition) < _canGrabAnchorDistance;
 
         return isWithinGrabDistance && _anchor.CanBeGrabbed();
     }

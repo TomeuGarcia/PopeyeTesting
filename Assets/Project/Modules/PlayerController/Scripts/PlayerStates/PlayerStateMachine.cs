@@ -51,7 +51,7 @@ public class PlayerStateMachine : MonoBehaviour
 
     private void Update()
     {
-        if (_currentState.Update())
+        if (_currentState.Update(Time.deltaTime))
         {
             _currentState.Exit();
             _currentState = _states[_currentState.NextState];
