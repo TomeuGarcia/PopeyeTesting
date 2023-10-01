@@ -11,6 +11,7 @@ public class AnchorHealthDrainer : MonoBehaviour
     private Material _anchorMaterial;
     [SerializeField] private LineRenderer _ownerBinderLine;
     private Material _chainMaterial;
+    [SerializeField] private SoulBar _soulBar;
 
     [Header("HEALING")]
     [SerializeField, Range(0.0f, 100.0f)] private float _healAmount = 10.0f;
@@ -50,6 +51,8 @@ public class AnchorHealthDrainer : MonoBehaviour
 
         _chainMaterial = _ownerBinderLine.material;
         SetChainVisuallyCharged(0.0f);
+        
+        _soulBar.Init();
     }
 
     private void Update()
