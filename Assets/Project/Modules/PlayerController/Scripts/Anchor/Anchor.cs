@@ -15,8 +15,9 @@ public class Anchor : MonoBehaviour
     [SerializeField] private LineRenderer _ownerBinderLine;
     [SerializeField] private Collider _hitTrigger;
     [SerializeField] private SphereCollider _collider;
-    [SerializeField] private AnchorDamageDealer _anchorDamageDealer;
+    [SerializeField] public AnchorDamageDealer _anchorDamageDealer;
     [SerializeField] private LayerMask _obstacleLayers;
+    [SerializeField] private GroundedAnchor _groundedAnchor;
 
     [Header("OWNER")]
     [SerializeField] private Transform _ownerTransform;
@@ -47,7 +48,7 @@ public class Anchor : MonoBehaviour
 
 
 
-    private enum AnchorStates
+    public enum AnchorStates
     {
         WithOwner,
         OnAir,
@@ -90,6 +91,8 @@ public class Anchor : MonoBehaviour
         _currentState = AnchorStates.OnGround;
 
         _anchorDamageDealer.DealGroundHitDamage(Position, _throwStrength01);
+        
+        _groundedAnchor.gameObject.SetActive(true);
     }
 
     private void OnTriggerEnter(Collider otherCollider)
@@ -110,6 +113,7 @@ public class Anchor : MonoBehaviour
     public void ReturnToOwner()
     {
         SetStill();
+        _groundedAnchor.gameObject.SetActive(false);
         _anchorTransform.SetParent(_ownerTransform);
         SetGrabbedPosition();
 
@@ -163,6 +167,11 @@ public class Anchor : MonoBehaviour
         return IsOnGround();
     }
 
+
+    public void ChangeState(AnchorStates newState)
+    {
+        _currentState = newState;
+    }
 
 
     private Vector3 GetTrajectoryPosition(float time, Vector3 startVelocity, Vector3 startPosition)

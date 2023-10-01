@@ -75,7 +75,7 @@ public class WithAnchorState : IPlayerState
 
         if (_movesetInputHandler.IsMeleeAttack_Pressed())
         {
-            MeleeAttack();
+            //MeleeAttack();
         }
 
         return false;
