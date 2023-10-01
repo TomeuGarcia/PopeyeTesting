@@ -29,8 +29,8 @@ public class WithoutAnchorState : IPlayerState
         _maxMoveSpeed = maxMoveSpeed;
         _maxMoveSpeedPullingAnchor = maxMoveSpeedPullingAnchor;
         _movesetInputHandler = movesetInputHandler;
-        _attractDuration = 0.3f;
-        _attractInvulnerableDuration = 0.5f;
+        _attractDuration = 0.4f;
+        _attractInvulnerableDuration = 0.6f;
         _canGrabAnchorDistance = 3.0f;
     }
 

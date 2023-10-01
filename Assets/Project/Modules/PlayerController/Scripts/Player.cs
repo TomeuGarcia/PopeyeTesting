@@ -18,7 +18,7 @@ public class Player : MonoBehaviour, IHealthTarget
 
     [Header("HEALTH")]
     [SerializeField, Range(0.0f, 100.0f)] private float _maxHealth = 50.0f;
-    [SerializeField] private HealthBar _healthBar;
+    [SerializeField] private ValueStatBar _healthBar;
     private HealthSystem _healthSystem;
 
     public PlayerController PlayerController => _playerController;

@@ -1,0 +1,66 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class EnemyChasingState : IEnemyState
+{
+    private Enemy _enemy;
+    private float _loseInterestDistance;
+    private float _attackStartDistance;
+
+    private float _timeLastDash;
+    private float _dashCooldownTime;
+
+
+    public EnemyChasingState(Enemy enemy, float loseInterestDistance, float attackStartDistance)
+    {
+        _enemy = enemy;
+        _loseInterestDistance = loseInterestDistance;
+        _attackStartDistance = attackStartDistance;
+        _timeLastDash = 0.0f;
+        _dashCooldownTime = 3.0f;
+    }
+
+
+    protected override void DoEnter()
+    {
+        
+    }
+
+    public override void Exit()
+    {
+        
+    }
+
+    public override bool Update(float deltaTime)
+    {
+        if (_enemy.IsDead())
+        {
+            _nextState = States.Dead;
+            return true;
+        }
+        
+        float distanceFromTarget = Vector3.Distance(_enemy.TargetPosition, _enemy.Position);
+
+        if (distanceFromTarget < _attackStartDistance && _enemy.IsTargetOnReachableHeight() && DashCooldownFinished())
+        {
+            _timeLastDash = Time.time;
+            _nextState = States.Dashing;            
+            return true;
+        }
+
+        if (distanceFromTarget > _loseInterestDistance)
+        {
+            _nextState = States.Idle;
+            return true;
+        }
+
+
+        return false;
+    }
+
+    private bool DashCooldownFinished()
+    {
+        return Time.time > _timeLastDash + _dashCooldownTime;
+    }
+}

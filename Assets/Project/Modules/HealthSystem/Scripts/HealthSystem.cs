@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public class HealthSystem
+public class HealthSystem : IValueStat
 {
     private float _maxHealth;
     private float _currentHealth;
-    public float MaxHealth => _maxHealth;
-    public float CurrentHealthRatio => _currentHealth / _maxHealth;
+    public float MaxHealth => _maxHealth;    
 
     private bool _isInvulnerable;
     public bool IsInvulnerable
@@ -18,14 +17,10 @@ public class HealthSystem
     }
 
 
-    public delegate void HealthSystemEvent();
-    public HealthSystemEvent OnHealthUpdate;
-
-
     public HealthSystem(float maxHealth)
     {
         _maxHealth = maxHealth;
-        _currentHealth = MaxHealth;
+        _currentHealth = maxHealth;
         _isInvulnerable = false;
     }
 
@@ -35,16 +30,16 @@ public class HealthSystem
         if (IsInvulnerable) { return; }
 
         _currentHealth -= damageAmount;
-        _currentHealth = Mathf.Max(0, _currentHealth);
+        _currentHealth = Mathf.Max(0f, _currentHealth);
 
-        OnHealthUpdate?.Invoke();
+        OnValueUpdate?.Invoke();
     }
     
     public void Kill()
     {
         _currentHealth = 0f;
 
-        OnHealthUpdate?.Invoke();
+        OnValueUpdate?.Invoke();
     }
 
 
@@ -53,14 +48,14 @@ public class HealthSystem
         _currentHealth += healAmount;
         _currentHealth = Mathf.Min(MaxHealth, _currentHealth);
 
-        OnHealthUpdate?.Invoke();
+        OnValueUpdate?.Invoke();
     }
     
     public void HealToMax()
     {
         _currentHealth = MaxHealth;
 
-        OnHealthUpdate?.Invoke();
+        OnValueUpdate?.Invoke();
     }
 
     public bool IsDead()
@@ -80,5 +75,8 @@ public class HealthSystem
         }        
     }
 
-
+    public override float GetValuePer1Ratio()
+    {
+        return _currentHealth / _maxHealth;
+    }
 }

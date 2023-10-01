@@ -19,8 +19,9 @@ public class AnchorHealthDrainer : MonoBehaviour
     [SerializeField] private AnimationCurve _chargedCurve;
 
     [Header("KILLS")]
+    [SerializeField] private ValueStatBar _staminaBar;
     [SerializeField, Range(0.0f, 500.0f)] private float _requiredDrainedHealth = 150.0f;
-    private float _currentDrainedHealth;
+    private StaminaSystem _staminaSystem;
     private bool _canHeal;
 
     [Header("PREFABS")]
@@ -42,7 +43,8 @@ public class AnchorHealthDrainer : MonoBehaviour
 
     private void Awake()
     {
-        _currentDrainedHealth = 0.0f;
+        _staminaSystem = new StaminaSystem(_requiredDrainedHealth, 0.0f);
+        _staminaBar.Init(_staminaSystem);
         _canHeal = false;
 
         _anchorMaterial = _anchorMesh.material;
@@ -83,9 +85,9 @@ public class AnchorHealthDrainer : MonoBehaviour
 
     private void IncrementDrainedHealth(DamageHit damageHit)
     {
-        _currentDrainedHealth += damageHit.Damage;
+        _staminaSystem.Restore(damageHit.Damage);
 
-        _canHeal = _currentDrainedHealth >= _requiredDrainedHealth;
+        _canHeal = _staminaSystem.HasMaxStamina();
 
         _anchorMaterial.SetFloat("_IsCharged", _canHeal ? 1.0f : 0.0f);
     }
@@ -93,8 +95,8 @@ public class AnchorHealthDrainer : MonoBehaviour
     private void HealOwner()
     {
         _canHeal = false;
-        _healTimer = 0;
-        _currentDrainedHealth = 0;
+        _healTimer = 0;        
+        _staminaSystem.SpendAll();
 
         _player.Heal(_healAmount);
 

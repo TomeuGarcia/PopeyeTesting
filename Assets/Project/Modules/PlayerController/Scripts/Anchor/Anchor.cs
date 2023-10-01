@@ -27,6 +27,10 @@ public class Anchor : MonoBehaviour
     [Header("PULL")]
     [SerializeField, Range(0.0f, 20.0f)] private float _pulledTowardsOwnerAccelearation = 2.0f;
 
+    [Header("PULL ATTACK")]
+    [SerializeField, Range(0, 1)] float _pullAttackArchLerp = 0;
+    [SerializeField, Range(0f, 180f)] float _canPullAttackAngleThreshold = 20f;
+
     [Header("FORCE")]
     [SerializeField] private AnimationCurve _forceCurve;
     [SerializeField, Range(0.0f, 100.0f)] private float _maxForce = 20.0f;
@@ -430,7 +434,7 @@ public class Anchor : MonoBehaviour
         Vector3 up = Vector3.up;
         Vector3 right = Vector3.Cross(moveDirection, up).normalized;
 
-        Vector3 moveArchDirection = Vector3.Lerp(up, right, _arch).normalized;
+        Vector3 moveArchDirection = Vector3.Lerp(up, right, _pullAttackArchLerp).normalized;
 
         transform.DOBlendableMoveBy(moveArchDirection * distance, duration / 2)
             .SetEase(Ease.InOutSine)
@@ -451,6 +455,5 @@ public class Anchor : MonoBehaviour
         _rigidbody.AddForce(Vector3.down * 50f, ForceMode.Impulse);
     }
 
-    [SerializeField, Range(0, 1)] float _arch = 0;
-    [SerializeField, Range(0f, 180f)] float _canPullAttackAngleThreshold = 20f;
+
 }

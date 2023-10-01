@@ -73,12 +73,12 @@ public class AimingThrowAnchorState : IPlayerState
 
     private void AimAnchor()
     {        
-        _anchor.ComputeTrajectory(ThrowStrength01, _playerController.LookDirection);
+        _anchor.ComputeTrajectory(ThrowStrength01, _playerController.ReverseLookDirection);
     }
 
     private void ThrowAnchor()
     {
-        _anchor.GetThrown(ThrowStrength01, _playerController.LookDirection);
+        _anchor.GetThrown(ThrowStrength01, _playerController.ReverseLookDirection);
     }
 
 }

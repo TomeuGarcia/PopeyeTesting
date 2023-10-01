@@ -18,7 +18,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Transform _lookTransform;
     [SerializeField, Range(0.0f, 1000.0f)] private float _lookSpeed = 700.0f;
     [SerializeField, Range(0.0f, 1.0f)] private float _blendWithVelocityDirection = 0.0f;
-    public Vector3 LookDirection => -_lookTransform.forward;
+    public Vector3 LookDirection => _lookTransform.forward;
+    public Vector3 ReverseLookDirection => -_lookTransform.forward;
     private bool _canRotate = true;
     public bool CanRotate
     {
@@ -278,6 +279,7 @@ public class PlayerController : MonoBehaviour
         Quaternion goalRotation = Quaternion.LookRotation(lookDirection, Vector3.up);
         _lookTransform.localRotation = Quaternion.RotateTowards(_lookTransform.localRotation, goalRotation, Time.deltaTime * _lookSpeed);
     }
+
 
 
     public void GetPushed(Vector3 pushForce)

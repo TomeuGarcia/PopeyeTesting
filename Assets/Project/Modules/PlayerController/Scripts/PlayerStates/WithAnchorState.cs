@@ -93,7 +93,7 @@ public class WithAnchorState : IPlayerState
     private async void LungeForward(float delay)
     {
         await Task.Delay((int)(delay * 1000));
-        _playerController.GetPushed(_playerController.LookDirection * 10.0f);
+        _playerController.GetPushed(_playerController.ReverseLookDirection * 10.0f);
 
     }
 
