@@ -47,8 +47,11 @@ public class EnemyDashingState : IEnemyState
     public override void Exit()
     {
         _enemy.SetMaxMoveSpeed(_defaultMaxMoveSpeed);
-        _enemy.SetCanRotate(true);
+        _enemy.SetCanRotate(true);        
+    }
 
+    public override void Interrupt()
+    {
         if (!_finishedDashing)
         {
             _enemy.transform.DOKill();
@@ -58,18 +61,11 @@ public class EnemyDashingState : IEnemyState
 
     public override bool Update(float deltaTime)
     {
-        if (_enemy.IsDead())
-        {
-            _nextState = States.Dead;
-            return true;
-        }
-
         if (_finishedDashing)
         {
             _nextState = States.Chasing;
             return true;
         }
-
 
         return false;
     }

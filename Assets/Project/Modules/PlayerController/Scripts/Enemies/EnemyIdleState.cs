@@ -24,15 +24,13 @@ public class EnemyIdleState : IEnemyState
     {
         
     }
+    public override void Interrupt()
+    {
+        
+    }
 
     public override bool Update(float deltaTime)
     {
-        if (_enemy.IsDead())
-        {
-            _nextState = States.Dead;
-            return true;
-        }
-
         if (Vector3.Distance(_enemy.TargetPosition, _enemy.Position) < _chaseStartDistance)
         {
             _nextState = States.Chasing;

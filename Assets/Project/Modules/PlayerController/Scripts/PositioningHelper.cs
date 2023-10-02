@@ -7,6 +7,7 @@ public class PositioningHelper : MonoBehaviour
     [SerializeField] private LayerMask _obstaclesLayerMask;
     [SerializeField] private LayerMask _floorLayerMask;
     [SerializeField, Range(0.0f, 10.0f)] private float _floorProbeDistance = 2.0f;
+    [SerializeField, Range(0.0f, 1.0f)] private float _skinDistance = 0.01f;
 
     public static PositioningHelper Instance
     {
@@ -54,6 +55,47 @@ public class PositioningHelper : MonoBehaviour
         }
 
         return forward;
+    }
+
+
+    private Vector3 GetCollideandSlideResult(Vector3 startPosition, Vector3 goalPosition)
+    {
+        goalPosition = CollideAndSlide(startPosition, goalPosition, 5);
+
+        return goalPosition - startPosition;
+    }    
+
+    private Vector3 CollideAndSlide(Vector3 startPosition, Vector3 goalPosition, int step)
+    {
+        // Need to revise everything EHEHE
+
+        if (step == 0)
+        {
+            return Vector3.zero;
+        }
+
+
+        Vector3 displacement = goalPosition - startPosition;
+        Vector3 direction = displacement.normalized;
+        float distance = displacement.magnitude;
+
+
+        if (!Physics.Raycast(startPosition, direction, out RaycastHit hit, distance, _obstaclesLayerMask, QueryTriggerInteraction.Ignore))
+        {
+            return displacement;
+        }
+
+
+        float remainingDistance = distance - hit.distance;
+        Vector3 pastCollisionDisplacement = direction * remainingDistance;
+
+        Vector3 projectedDisplacement = Vector3.Project(pastCollisionDisplacement, hit.normal).normalized * remainingDistance;
+
+
+        startPosition = hit.point + hit.normal * _skinDistance;
+        goalPosition = startPosition + projectedDisplacement;
+
+        return displacement + CollideAndSlide(startPosition, goalPosition, step -1);
     }
 
 

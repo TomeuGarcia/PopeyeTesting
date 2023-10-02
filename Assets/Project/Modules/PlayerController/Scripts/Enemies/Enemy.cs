@@ -49,7 +49,7 @@ public class Enemy : MonoBehaviour, IDamageHitTarget, IMovementInputHandler
         if (transform.position.y < -1)
         {
             Respawn();
-        }
+        }        
     }
 
 
@@ -58,7 +58,11 @@ public class Enemy : MonoBehaviour, IDamageHitTarget, IMovementInputHandler
         TakeKnockback(damageHit.Position, damageHit.KnockbackForce);
 
         _healthSystem.TakeDamage(damageHit.Damage);
-        if (!_healthSystem.IsDead())
+        if (_healthSystem.IsDead())
+        {
+            _stateMachine.OverwriteCurrentState(IEnemyState.States.Dead);
+        }
+        else
         {
             GetStunned(damageHit.StunDuration);
         }

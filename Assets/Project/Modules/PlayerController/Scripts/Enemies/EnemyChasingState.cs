@@ -31,15 +31,13 @@ public class EnemyChasingState : IEnemyState
     {
         
     }
+    public override void Interrupt()
+    {
+        
+    }
 
     public override bool Update(float deltaTime)
     {
-        if (_enemy.IsDead())
-        {
-            _nextState = States.Dead;
-            return true;
-        }
-        
         float distanceFromTarget = Vector3.Distance(_enemy.TargetPosition, _enemy.Position);
 
         if (distanceFromTarget < _attackStartDistance && _enemy.IsTargetOnReachableHeight() && DashCooldownFinished())

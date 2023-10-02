@@ -67,9 +67,15 @@ public class EnemyStateMachine : MonoBehaviour
 
 
     public void ResetStateMachine()
+    {        
+        OverwriteCurrentState(IEnemyState.States.Idle);
+    }
+
+    public void OverwriteCurrentState(IEnemyState.States newState)
     {
+        _currentState.Interrupt();
         _currentState.Exit();
-        _currentState = _states[IEnemyState.States.Idle];
+        _currentState = _states[newState];
         _currentState.Enter();
     }
 

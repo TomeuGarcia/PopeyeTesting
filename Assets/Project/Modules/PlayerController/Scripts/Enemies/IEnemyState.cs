@@ -25,5 +25,6 @@ public abstract class IEnemyState
 
     protected abstract void DoEnter();
     public abstract void Exit();
+    public abstract void Interrupt();
     public abstract bool Update(float deltaTime);
 }

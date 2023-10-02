@@ -21,6 +21,11 @@ public class EnemyDeadState : IEnemyState
     {
         
     }
+    
+    public override void Interrupt()
+    {
+        
+    }
 
     public override bool Update(float deltaTime)
     {
