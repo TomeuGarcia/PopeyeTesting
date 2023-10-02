@@ -130,7 +130,7 @@ public class WithoutAnchorState : IPlayerState
         return isWithinGrabDistance && _anchor.CanBeGrabbed();
     }
 
-    private async void AnchorAttract()
+    public async void AnchorAttract()
     {
         _ownerIsBeingAttracted = true;
         _playerController.enabled = false;

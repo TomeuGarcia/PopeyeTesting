@@ -15,11 +15,12 @@ public class SoulBar : MonoBehaviour
     public void Init(float maxValue, float value)
     {
         _maxValue = maxValue;
-        _value = value;
+        ChangeValue(value);
     }
 
-    public void ChangeValue()
+    public void ChangeValue(float value)
     {
-        
+        _value = value;
+        _fillImage.fillAmount = _value / _maxValue;
     }
 }

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class Enemy : MonoBehaviour, IDamageHitTarget, IMovementInputHandler
 {
@@ -28,13 +29,16 @@ public class Enemy : MonoBehaviour, IDamageHitTarget, IMovementInputHandler
 
     private bool _canMove;
 
-
+    private Vector3 initPos;
+    
     private void Awake()
     {
         _enemyController.MovementInputHandler = this;
         _canMove = true;
 
         _healthSystem = new HealthSystem(_maxHealth);
+
+        initPos = transform.position;
     }
 
     private void Update()
@@ -91,7 +95,7 @@ public class Enemy : MonoBehaviour, IDamageHitTarget, IMovementInputHandler
     private void Respawn()
     {
         _enemyController.enabled = true;
-        transform.position = new Vector3(-10, 10, 10);
+        transform.position = initPos;
         _healthSystem.HealToMax();
         transform.rotation = Quaternion.identity;
     }
