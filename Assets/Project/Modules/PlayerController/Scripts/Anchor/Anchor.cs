@@ -18,6 +18,15 @@ public class Anchor : MonoBehaviour
     [SerializeField] private AnchorDamageDealer _anchorDamageDealer;
     [SerializeField] private LayerMask _obstacleLayers;
 
+    [Header("NEW TRAJECTORY")]
+    [SerializeField] private LineRenderer _maxForceTrajectory;
+    [SerializeField] private LineRenderer _minForceTrajectory;
+    [SerializeField] private LineRenderer _currentTrajectoryDebug;
+    private Vector3[] _trajectoryPathPoints;
+    [SerializeField, Range(0.0f, 10.0f)] float _maxThrowDuration = 0.6f;
+    [SerializeField, Range(0.0f, 10.0f)] float _minThrowDuration = 0.3f;
+    [SerializeField] private AnimationCurve _forceCurveNewTrajectory;
+
     [Header("OWNER")]
     [SerializeField] private Transform _ownerTransform;
     [SerializeField] private Vector3 _grabbedPosition = new Vector3(1.0f, 0.0f, 0.5f);
@@ -69,6 +78,8 @@ public class Anchor : MonoBehaviour
         HideTrajectory();
 
         SetStill();
+
+        _trajectoryPathPoints = new Vector3[_maxForceTrajectory.positionCount];
     }
 
     private void Update()
@@ -82,6 +93,9 @@ public class Anchor : MonoBehaviour
     private void OnCollisionEnter(Collision collision)
     {
         if (IsOnGround()) return;
+
+
+        _rigidbody.DOKill();
 
         Vector3 normal = collision.contacts[0].normal;
         if (Vector3.Dot(normal, Vector3.up) < -0.7f)
@@ -133,7 +147,7 @@ public class Anchor : MonoBehaviour
         SetAimingPositionInstantly();
         _anchorTransform.SetParent(null);
 
-        LaunchAnchor(_velocity);
+        LaunchAnchor();
 
 
         _currentState = AnchorStates.OnAir;        
@@ -147,9 +161,23 @@ public class Anchor : MonoBehaviour
         lookDirection += (_ownerTransform.rotation * _launchDirectionOffset).normalized;
         lookDirection.Normalize();
 
-        _velocity = lookDirection * _forceCurve.Evaluate(strength01) * _maxForce;
+        float curveStrength01 = _forceCurve.Evaluate(strength01);
+        _velocity = lookDirection * curveStrength01 * _maxForce;
         _throwStartPosition = Position;
         DrawTrajectory(_velocity);
+
+
+
+        curveStrength01 = _forceCurveNewTrajectory.Evaluate(_throwStrength01);
+        _currentTrajectoryDebug.positionCount = _maxForceTrajectory.positionCount;
+        for (int i = 0; i < _maxForceTrajectory.positionCount; ++i)
+        {
+            Vector3 localPosition = Vector3.Lerp(_minForceTrajectory.GetPosition(i), _maxForceTrajectory.GetPosition(i), curveStrength01);
+            Vector3 trajectoryPosition = _throwStartPosition + (_ownerTransform.rotation * localPosition);
+
+            _trajectoryPathPoints[i] = trajectoryPosition;
+            _currentTrajectoryDebug.SetPosition(i, trajectoryPosition);
+        }
     }
     
 
@@ -175,26 +203,15 @@ public class Anchor : MonoBehaviour
     }
 
 
-    private async void LaunchAnchor(Vector3 startVelocity)
+    private void LaunchAnchor()
     {
         _currentState = AnchorStates.OnAir;
 
         SetMovable();
-        _rigidbody.AddForce(startVelocity, ForceMode.Impulse);
+        //_rigidbody.AddForce(startVelocity, ForceMode.Impulse);
 
-        return;
-        float delay = 0.2f;
-        await Task.Delay((int)(delay * 1000));
-
-        if (_currentState == AnchorStates.OnAir)
-        {
-            Debug.Log("DOWN");
-            //Vector3 downForce = Vector3.down * startVelocity.magnitude * 3;
-            Vector3 downForce = startVelocity;
-            downForce.y *= -1.5f;
-            _rigidbody.AddForce(downForce, ForceMode.Impulse);
-        }
-        
+        float duration = Mathf.Lerp(_minThrowDuration, _maxThrowDuration, _forceCurveNewTrajectory.Evaluate(_throwStrength01));
+        _rigidbody.DOLocalPath(_trajectoryPathPoints, duration, PathType.CatmullRom);
     }
 
     private void DrawTrajectory(Vector3 startVelocity)
@@ -285,12 +302,14 @@ public class Anchor : MonoBehaviour
 
     public void ShowTrajectory()
     {
-        _trajectoryLine.enabled = true;
+        //_trajectoryLine.enabled = true;
+        _currentTrajectoryDebug.enabled = true;
     }
     
     public void HideTrajectory()
     {
-        _trajectoryLine.enabled = false;
+        //_trajectoryLine.enabled = false;
+        _currentTrajectoryDebug.enabled = false;
     }
 
     public void SetAimingPosition()
