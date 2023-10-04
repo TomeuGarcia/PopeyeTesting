@@ -4,9 +4,55 @@ using UnityEngine;
 
 public class EnemiesController : MonoBehaviour
 {
+    [Header("PARENTS")]
     [SerializeField] private GameObject BigEnemies;
     [SerializeField] private GameObject MediumEnemies;
     [SerializeField] private GameObject SmallEnemies;
+
+    [Header("REFERENCES")]
+    [SerializeField] private Transform _enemyAttackTarget;
+    private Enemy[] _enemies;
+
+
+
+    private void Awake()
+    {
+        int numberOfBigEnemies = BigEnemies.transform.childCount;
+        int numberOfMediumEnemies = MediumEnemies.transform.childCount;
+        int numberOfSmallEnemies = SmallEnemies.transform.childCount;
+
+        int numberOfEnemies = numberOfBigEnemies + numberOfMediumEnemies + numberOfSmallEnemies;
+        _enemies = new Enemy[numberOfEnemies];
+
+        int enemyI = 0;
+        for (int i = 0; i < numberOfBigEnemies; ++i, ++enemyI)
+        {
+            Enemy enemy = BigEnemies.transform.GetChild(i).GetComponent<Enemy>();            
+            enemy.AwakeInit(_enemyAttackTarget, true);
+            enemy.SetRespawnPosition(enemy.Position);
+
+            _enemies[enemyI] = enemy;
+        }
+
+        for (int i = 0; i < numberOfMediumEnemies; ++i, ++enemyI)
+        {
+            Enemy enemy = MediumEnemies.transform.GetChild(i).GetComponent<Enemy>();
+            enemy.AwakeInit(_enemyAttackTarget, true);
+            enemy.SetRespawnPosition(enemy.Position);
+
+            _enemies[enemyI] = enemy;
+        }
+        
+        for (int i = 0; i < numberOfSmallEnemies; ++i, ++enemyI)
+        {
+            Enemy enemy = SmallEnemies.transform.GetChild(i).GetComponent<Enemy>();
+            enemy.AwakeInit(_enemyAttackTarget, true);
+            enemy.SetRespawnPosition(enemy.Position);
+
+            _enemies[enemyI] = enemy;
+        }
+
+    }
 
 
     private void Update()

@@ -1,0 +1,41 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class EnemySpawnerInteractor_Trigger : AEnemySpawnerInteractor
+{
+    [SerializeField] private Collider[] _triggers;
+    [SerializeField] private AWorldInteractor[] _worldInteractors;
+    
+    private const string PLAYER_TAG = "Player";
+
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.CompareTag(PLAYER_TAG))
+        {
+            StartEnemySpawnerWaves();
+        }
+    }
+
+    protected override void OnAllEnemyWavesFinishedEvent()
+    {
+        foreach (AWorldInteractor worldInteractor in _worldInteractors)
+        {
+            worldInteractor.EnterDeactivatedState();
+        }
+    }
+
+    protected override void OnOnFirstEnemyWaveStartedEvent()
+    {
+        foreach (Collider trigger in _triggers)
+        {
+            trigger.enabled = false;
+        }
+
+        foreach (AWorldInteractor worldInteractor in _worldInteractors)
+        {
+            worldInteractor.EnterActivatedState();
+        }
+    }
+}

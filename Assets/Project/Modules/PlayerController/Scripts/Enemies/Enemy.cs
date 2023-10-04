@@ -7,10 +7,10 @@ using UnityEngine;
 public class Enemy : MonoBehaviour, IDamageHitTarget, IMovementInputHandler
 {
     [Header("COMPONENTS")]
-    [SerializeField] private EnemyStateMachine _stateMachine;
-    [SerializeField] private Transform _lookTarget;
+    [SerializeField] private IEnemyStateMachine _stateMachine;
     [SerializeField] private PlayerController _enemyController;
     [SerializeField] private Rigidbody _rigidbody;
+    private Transform _attackTarget;
 
     [Header("MOVE SPEEDS")]
     [SerializeField, Range(0.0f, 100.0f)] private float _maxMoveSpeed = 16.0f;
@@ -26,18 +26,32 @@ public class Enemy : MonoBehaviour, IDamageHitTarget, IMovementInputHandler
 
     public Vector3 Position => transform.position;
     public Vector3 LookDirection => _enemyController.LookDirection;
-    public Vector3 TargetPosition => _lookTarget.position;
+    public Vector3 TargetPosition => _attackTarget.position;
+
 
     private bool _canMove;
     private int _disabledMovementCount;
 
+    private bool _respawnsAfterDeath;
+    private Vector3 _respawnPosition;
 
-    private void Awake()
+
+    public delegate void EnemyEvent(Enemy senderEnemy);
+    public EnemyEvent OnDeathAnimationFinished;
+
+
+    public void AwakeInit(Transform attackTarget, bool respawnsAfterDeath)
     {
+        _attackTarget = attackTarget;
+
         _enemyController.MovementInputHandler = this;
         _enemyController.MaxSpeed = _maxMoveSpeed;
+
         _canMove = true;
         _disabledMovementCount = 0;
+
+        _respawnsAfterDeath = respawnsAfterDeath;
+        _respawnPosition = new Vector3(-10, 10, 10);
 
         _healthSystem = new HealthSystem(_maxHealth);
 
@@ -46,10 +60,15 @@ public class Enemy : MonoBehaviour, IDamageHitTarget, IMovementInputHandler
 
     private void Update()
     {
-        if (transform.position.y < -1)
+        if (transform.position.y < -1 && _respawnsAfterDeath)
         {
             Respawn();
         }        
+    }
+
+    public void SetRespawnPosition(Vector3 respawnPosition)
+    {
+        _respawnPosition = respawnPosition;
     }
 
 
@@ -84,7 +103,16 @@ public class Enemy : MonoBehaviour, IDamageHitTarget, IMovementInputHandler
         _enemyController.enabled = false;
         transform.DOBlendableRotateBy(Vector3.right * 180f, deathDuration).OnComplete(() =>
         {
-            Respawn();
+            OnDeathAnimationFinished?.Invoke(this);
+
+            if (_respawnsAfterDeath)
+            {
+                Respawn();
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
         });
 
         GetStunned(deathDuration);
@@ -93,7 +121,7 @@ public class Enemy : MonoBehaviour, IDamageHitTarget, IMovementInputHandler
     private void Respawn()
     {
         _enemyController.enabled = true;
-        transform.position = new Vector3(-10, 10, 10);
+        transform.position = _respawnPosition;
         _healthSystem.HealToMax();
         transform.rotation = Quaternion.identity;
 

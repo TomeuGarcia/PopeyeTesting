@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemyStateMachine : MonoBehaviour
+public class EnemyStateMachine : IEnemyStateMachine
 {
     private Enemy _enemy;
 
@@ -22,7 +22,7 @@ public class EnemyStateMachine : MonoBehaviour
 
 
 
-    public void AwakeInit(Enemy enemy)
+    public override void AwakeInit(Enemy enemy)
     {
         _enemy = enemy;
         Init();
@@ -66,12 +66,12 @@ public class EnemyStateMachine : MonoBehaviour
     }
 
 
-    public void ResetStateMachine()
+    public override void ResetStateMachine()
     {        
         OverwriteCurrentState(IEnemyState.States.Idle);
     }
 
-    public void OverwriteCurrentState(IEnemyState.States newState)
+    public override void OverwriteCurrentState(IEnemyState.States newState)
     {
         _currentState.Interrupt();
         _currentState.Exit();
