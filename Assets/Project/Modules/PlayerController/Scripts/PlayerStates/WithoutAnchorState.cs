@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class WithoutAnchorState : IPlayerState
@@ -96,6 +97,10 @@ public class WithoutAnchorState : IPlayerState
             AnchorAttract();
         }
 
+        if (_movesetInputHandler.IsMeleeAttack_Pressed())
+        {
+            MeleeAttack();
+        }
         
         if ((_movesetInputHandler.IsPullAttack_HoldPressed() || _queuedPullAttack) && _anchor.CanDoChargedPullAttack())
         {
@@ -105,6 +110,8 @@ public class WithoutAnchorState : IPlayerState
             return true;
         }        
 
+
+        
 
         return false;
     }
@@ -123,7 +130,7 @@ public class WithoutAnchorState : IPlayerState
         return isWithinGrabDistance && _anchor.CanBeGrabbed();
     }
 
-    private async void AnchorAttract()
+    public async void AnchorAttract()
     {
         _ownerIsBeingAttracted = true;
         _playerController.enabled = false;
@@ -135,5 +142,26 @@ public class WithoutAnchorState : IPlayerState
         _playerController.enabled = true;
         _ownerIsBeingAttracted = false;
     }
+    
+    /// <summary>
+    /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// </summary>
+    private async void MeleeAttack()
+    {
+        _playerController.MaxSpeed = 0.0f;
+        _playerController.CanRotate = false;
 
+        LungeForward(0.1f);
+        await _player.MeleeAttack();
+        _playerController.MaxSpeed = _maxMoveSpeed;
+        _playerController.CanRotate = true;
+    }
+
+
+    private async void LungeForward(float delay)
+    {
+        await Task.Delay((int)(delay * 1000));
+        _playerController.GetPushed(_playerController.LookDirection * 10.0f);
+
+    }
 }

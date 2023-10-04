@@ -15,7 +15,7 @@ public class PlayerController : MonoBehaviour
     private Material _material;
 
     [Header("LOOK")]
-    [SerializeField] private Transform _lookTransform;
+    [SerializeField] public Transform _lookTransform;
     [SerializeField, Range(0.0f, 1000.0f)] private float _lookSpeed = 700.0f;
     [SerializeField, Range(0.0f, 1.0f)] private float _blendWithVelocityDirection = 0.0f;
     public Vector3 LookDirection => _lookTransform.forward;
