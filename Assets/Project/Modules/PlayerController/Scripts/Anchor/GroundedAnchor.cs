@@ -60,14 +60,14 @@ public class GroundedAnchor : MonoBehaviour
     private void DamagingThrow()
     {
         anchor.ChangeState(Anchor.AnchorStates.OnAir);
-        anchor.transform.DOMove(-_playerController._lookTransform.forward * 10f + anchor.transform.position, duration, false).SetEase(Ease.OutCirc);
+        anchor.transform.DOMove(_playerController.LookDirection * 10f + anchor.transform.position, duration, false).SetEase(Ease.OutCirc);
 
         StartCoroutine(AAAA());
     }
 
     private void NonDamagingThrow()
     {
-        Vector3 offsetToEnd = (-_playerController._lookTransform.forward) * distance + anchor.transform.position - anchor.transform.position;
+        Vector3 offsetToEnd = (_playerController.LookDirection) * distance + anchor.transform.position - anchor.transform.position;
 
         anchor.transform.DOBlendableMoveBy(offsetToEnd, duration)
             .SetEase(Ease.InOutSine);
@@ -94,7 +94,7 @@ public class GroundedAnchor : MonoBehaviour
         directionArrow.transform.position = transform.position;
         transform.rotation = _playerController._lookTransform.rotation;
         directionArrow.transform.rotation = _playerController._lookTransform.rotation;
-        directionArrow.transform.RotateAround(directionArrow.transform.up, 180f * Mathf.Deg2Rad);
+        
 
         if (Input.GetKeyDown(KeyCode.M))
         {

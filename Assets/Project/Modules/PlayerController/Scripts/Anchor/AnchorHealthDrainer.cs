@@ -11,7 +11,6 @@ public class AnchorHealthDrainer : MonoBehaviour
     private Material _anchorMaterial;
     [SerializeField] private LineRenderer _ownerBinderLine;
     private Material _chainMaterial;
-    [SerializeField] private SoulBar _soulBar;
 
     [Header("HEALING")]
     [SerializeField, Range(0.0f, 100.0f)] private float _healAmount = 10.0f;
@@ -53,8 +52,6 @@ public class AnchorHealthDrainer : MonoBehaviour
 
         _chainMaterial = _ownerBinderLine.material;
         SetChainVisuallyCharged(0.0f);
-        
-        _soulBar.Init(_requiredDrainedHealth, 0f);
     }
 
     private void Update()
@@ -79,8 +76,6 @@ public class AnchorHealthDrainer : MonoBehaviour
             if (_healTimer > _healDuration)
             {
                 HealOwner();
-                
-                _soulBar.ChangeValue(_currentDrainedHealth);
             }
 
             SetChainVisuallyCharged(Mathf.Min(_healTimer / _healDuration, 1.0f));
@@ -95,19 +90,11 @@ public class AnchorHealthDrainer : MonoBehaviour
         _canHeal = _staminaSystem.HasMaxStamina();
 
         _anchorMaterial.SetFloat("_IsCharged", _canHeal ? 1.0f : 0.0f);
-        
-        _soulBar.ChangeValue(_currentDrainedHealth);
-    }
+            }
     
     public void OnMeleeAttackToAnchor()
     {
-        _currentDrainedHealth -= _requiredDrainedHealth / 10.0f;
-
-        _canHeal = _currentDrainedHealth >= _requiredDrainedHealth;
-
         _anchorMaterial.SetFloat("_IsCharged", _canHeal ? 1.0f : 0.0f);
-        
-        _soulBar.ChangeValue(_currentDrainedHealth);
     }
 
     private void HealOwner()
