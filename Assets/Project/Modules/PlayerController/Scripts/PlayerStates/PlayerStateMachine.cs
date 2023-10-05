@@ -11,6 +11,7 @@ public class PlayerStateMachine : MonoBehaviour
     [SerializeField] private float _aimingMoveSpeed;
     [SerializeField] private float _pullingMoveSpeed;
     [SerializeField] private float _pullAttackMoveSpeed;
+    [SerializeField, Range(0.0f, 10.0f)] private float _maxAimDuration = 1.0f;
 
     private ActionMovesetInputHandler _movesetInputHandler;
 
@@ -30,7 +31,7 @@ public class PlayerStateMachine : MonoBehaviour
 
         WithAnchorState withAnchorState = new WithAnchorState(_player, _anchor, _withAnchorMoveSpeed, _movesetInputHandler);
         WithoutAnchorState withoutAnchorState = new WithoutAnchorState(_player, _anchor, _withoutAnchorMoveSpeed, _pullingMoveSpeed, _movesetInputHandler);
-        AimingThrowAnchorState aimingThrowAnchorState = new AimingThrowAnchorState(_player, _anchor, _aimingMoveSpeed, _movesetInputHandler);
+        AimingThrowAnchorState aimingThrowAnchorState = new AimingThrowAnchorState(_player, _anchor, _aimingMoveSpeed, _movesetInputHandler, _maxAimDuration);
         ThrowingAnchorState throwingAnchorState = new ThrowingAnchorState(_player, _anchor, _withoutAnchorMoveSpeed, _movesetInputHandler);
         PlacedAnchorPullAttackState placedAnchorPullAttackState = new PlacedAnchorPullAttackState(_player, _anchor, _pullAttackMoveSpeed, _movesetInputHandler);
 

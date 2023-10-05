@@ -1125,6 +1125,7 @@ MonoBehaviour:
   _loseInterestDistance: 15
   _attackStartDistance: 3
   _dashDistance: 5
+  _minIdleDuration: 0.5
   _dashPrepareDuration: 0.5
   _dashExecutionDuration: 0.5
   _dashRecoverDuration: 0.5
