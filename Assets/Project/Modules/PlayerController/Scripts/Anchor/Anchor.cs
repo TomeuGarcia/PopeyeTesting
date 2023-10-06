@@ -18,6 +18,8 @@ public class Anchor : MonoBehaviour
     [SerializeField] public AnchorDamageDealer _anchorDamageDealer;
     [SerializeField] private LayerMask _obstacleLayers;
     [SerializeField] private GroundedAnchor _groundedAnchor;
+    [SerializeField] private AnchorSnapper _anchorSnapper;
+    private bool _anchorIsBeingSnapped;
 
     [Header("NEW TRAJECTORY")]
     [SerializeField] private LineRenderer _maxForceTrajectory;
@@ -153,7 +155,7 @@ public class Anchor : MonoBehaviour
 
     public void GetThrown(float strength01, Vector3 lookDirection)
     {
-        ComputeTrajectory(strength01, lookDirection);
+        CorrectTrajectory(strength01, lookDirection);
 
         SetAimingPositionInstantly();
         _anchorTransform.SetParent(null);
@@ -191,6 +193,17 @@ public class Anchor : MonoBehaviour
         }
     }
     
+    private void CorrectTrajectory(float strength01, Vector3 lookDirection)
+    {
+        ComputeTrajectory(strength01, lookDirection);
+
+        _anchorSnapper.ClearState();
+        _anchorIsBeingSnapped = _anchorSnapper.HasSnapTarget(_trajectoryPathPoints);
+        if (_anchorIsBeingSnapped)
+        {
+            _anchorSnapper.CorrectTrajectoryPath(_trajectoryPathPoints);
+        }
+    }
 
 
     public bool IsOnAir()
@@ -225,9 +238,29 @@ public class Anchor : MonoBehaviour
 
         SetMovable();
         //_rigidbody.AddForce(startVelocity, ForceMode.Impulse);
+        float trajectoryDistance = Vector3.Distance(_trajectoryPathPoints[0], _trajectoryPathPoints[_trajectoryPathPoints.Length - 1]) * 0.15f;
+        float maxThrowDuration = _maxThrowDuration * trajectoryDistance;
+        float minThrowDuration = _minThrowDuration * trajectoryDistance;
 
-        float duration = Mathf.Lerp(_minThrowDuration, _maxThrowDuration, _forceCurveNewTrajectory.Evaluate(_throwStrength01));
-        _rigidbody.DOLocalPath(_trajectoryPathPoints, duration, PathType.CatmullRom);
+        float duration = Mathf.Lerp(minThrowDuration, maxThrowDuration, _forceCurveNewTrajectory.Evaluate(_throwStrength01));
+
+        if (_anchorIsBeingSnapped)
+        {
+            _rigidbody.DOLocalPath(_trajectoryPathPoints, duration, PathType.CatmullRom)
+                .SetEase(Ease.OutQuad)
+                .OnComplete(() => {
+                    if (IsOnAir())
+                    {
+                        SetSnapped();
+                    }
+                });
+
+            _anchorSnapper.ConfirmSnapping(duration);
+        }
+        else
+        {
+            _rigidbody.DOLocalPath(_trajectoryPathPoints, duration, PathType.CatmullRom);
+        }
     }
 
     private void DrawTrajectory(Vector3 startVelocity)
@@ -316,6 +349,11 @@ public class Anchor : MonoBehaviour
         _isBeingPulled = true;
     }
 
+    private void SetSnapped()
+    {
+        SetStill();
+        _currentState = AnchorStates.OnGround;
+    }
 
     private void UpdateOwnerBinderLine()
     {
