@@ -165,7 +165,7 @@ public class AnchorDamageDealer : MonoBehaviour
             return false;
         }
 
-        if (!hitTarget.CanBeDamaged())
+        if (!hitTarget.CanBeDamaged(damageHit))
         {
             return false;
         }

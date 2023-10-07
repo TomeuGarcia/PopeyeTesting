@@ -87,7 +87,7 @@ public class Enemy : MonoBehaviour, IDamageHitTarget, IMovementInputHandler
         }
     }
 
-    public bool CanBeDamaged()
+    public bool CanBeDamaged(DamageHit damageHit)
     {
         return !_healthSystem.IsDead() && !_healthSystem.IsInvulnerable;
     }
