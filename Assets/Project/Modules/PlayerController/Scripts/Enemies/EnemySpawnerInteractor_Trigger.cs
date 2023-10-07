@@ -7,12 +7,10 @@ public class EnemySpawnerInteractor_Trigger : AEnemySpawnerInteractor
     [SerializeField] private Collider[] _triggers;
     [SerializeField] private AWorldInteractor[] _worldInteractors;
     
-    private const string PLAYER_TAG = "Player";
-
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.CompareTag(PLAYER_TAG))
+        if (other.gameObject.CompareTag(TagUtilities.PLAYER_TAG))
         {
             StartEnemySpawnerWaves();
         }
