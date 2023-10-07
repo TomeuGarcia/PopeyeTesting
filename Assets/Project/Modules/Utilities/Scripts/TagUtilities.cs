@@ -5,4 +5,5 @@ using UnityEngine;
 public class TagUtilities
 {
     public const string PLAYER_TAG = "Player";
+    public const string ANCHOR_TAG = "Anchor";
 }

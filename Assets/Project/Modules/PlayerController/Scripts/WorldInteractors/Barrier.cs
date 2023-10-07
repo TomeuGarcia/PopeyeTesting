@@ -17,8 +17,7 @@ public class Barrier : AWorldInteractor
     [Header("REFERNCES")]
     [SerializeField] private Transform _barrierTransform;
     [SerializeField] private Collider _collider;
-    [SerializeField] private bool _startActivated = false;
-
+    [SerializeField] private bool _startActivated = false;    
 
     protected override void AwakeInit()
     {
@@ -34,13 +33,13 @@ public class Barrier : AWorldInteractor
         SetCollisionEnabled(!_startActivated);
     }
 
-    public override void EnterActivatedState()
+    protected override void EnterActivatedState()
     {
         SetState(_activatedStateSpot, _activateDuration);
         SetCollisionEnabled(true);
     }
 
-    public override void EnterDeactivatedState()
+    protected override void EnterDeactivatedState()
     {
         SetState(_deactivatedStateSpot, _deactivateDuration);
         SetCollisionEnabledDelayed(false, _deactivateDuration).Forget();

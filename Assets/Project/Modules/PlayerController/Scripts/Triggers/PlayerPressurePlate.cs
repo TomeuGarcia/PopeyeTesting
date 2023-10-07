@@ -3,61 +3,59 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AnchorPressurePlate : MonoBehaviour, IDamageHitTarget
+public class PlayerPressurePlate : MonoBehaviour
 {
     [Header("REFERENCES")]
     [SerializeField] private Material _triggeredMaterial;
     [SerializeField] private Material _notTriggeredMaterial;
     [SerializeField] private MeshRenderer _buttonMesh;
     [SerializeField] private Transform _buttonTransform;
-    [SerializeField] protected BoxCollider _collider;
+
 
     [Header("WORLD INTERACTORS")]
     [SerializeField] private AWorldInteractor[] _worldInteractors;
 
-    protected bool _isTriggered;
-
-
+    private int _triggeredCount;
 
     private void Awake()
     {
-        _buttonMesh.material = _notTriggeredMaterial;
-        _isTriggered = false;
+        _triggeredCount = 0;
     }
 
-    public bool CanBeDamaged(DamageHit damageHit)
-    {
-        return CanBeTriggered(damageHit);
-    }
 
-    public bool IsDead()
+    private void OnTriggerEnter(Collider other)
     {
-        return false;
-    }
-
-    public void TakeHit(DamageHit damageHit)
-    {
-        OnTakeAnchorHit();
-    }
-
-    protected virtual bool CanBeTriggered(DamageHit damageHit)
-    {
-        if (!_collider.bounds.Contains(damageHit.Position))
+        if (other.gameObject.CompareTag(TagUtilities.PLAYER_TAG) || other.gameObject.CompareTag(TagUtilities.ANCHOR_TAG))
         {
-            return false;
-        }
+            if (_triggeredCount++ > 0) return;
 
-        return !_isTriggered && damageHit.Damage > 10;
+            SetTriggeredState();
+        }
+    }
+    
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.gameObject.CompareTag(TagUtilities.PLAYER_TAG) || other.gameObject.CompareTag(TagUtilities.ANCHOR_TAG))
+        {
+            if (--_triggeredCount > 0) return;
+
+            SetNotTriggeredState();
+        }
     }
 
-    protected virtual void OnTakeAnchorHit()
+
+
+    private void SetTriggeredState()
     {
         PlayTriggerAnimation();
-        _isTriggered = true;
-
         ActivateWorldInteractors();
     }
-
+    
+    private void SetNotTriggeredState()
+    {
+        PlayUntriggerAnimation();
+        DeactivateWorldInteractors();
+    }
 
     protected void PlayTriggerAnimation()
     {
@@ -71,7 +69,7 @@ public class AnchorPressurePlate : MonoBehaviour, IDamageHitTarget
     }
 
 
-    protected void DeactivateWorldInteractors()
+    private void DeactivateWorldInteractors()
     {
         foreach (AWorldInteractor worldInteractor in _worldInteractors)
         {
@@ -79,11 +77,12 @@ public class AnchorPressurePlate : MonoBehaviour, IDamageHitTarget
         }
     }
 
-    protected void ActivateWorldInteractors()
+    private void ActivateWorldInteractors()
     {
         foreach (AWorldInteractor worldInteractor in _worldInteractors)
         {
             worldInteractor.AddActivationInput();
         }
     }
+
 }
