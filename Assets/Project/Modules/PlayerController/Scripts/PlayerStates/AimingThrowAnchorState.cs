@@ -15,13 +15,13 @@ public class AimingThrowAnchorState : IPlayerState
 
     private const float THROW_TIMER_THRESHOLD = 0.1f;
 
-    public AimingThrowAnchorState(Player player, Anchor anchor, float maxMoveSpeed, ActionMovesetInputHandler movesetInputHandler)
+    public AimingThrowAnchorState(Player player, Anchor anchor, float maxMoveSpeed, ActionMovesetInputHandler movesetInputHandler, float maxAimDuration)
     {
         _playerController = player.PlayerController;
         _anchor = anchor;
         _maxMoveSpeed = maxMoveSpeed;
         _movesetInputHandler = movesetInputHandler;
-        _maxAimDuration = 1.5f;
+        _maxAimDuration = maxAimDuration;
     }
 
 

@@ -15,8 +15,11 @@ public class Anchor : MonoBehaviour
     [SerializeField] private LineRenderer _ownerBinderLine;
     [SerializeField] private Collider _hitTrigger;
     [SerializeField] private SphereCollider _collider;
-    [SerializeField] private AnchorDamageDealer _anchorDamageDealer;
+    [SerializeField] public AnchorDamageDealer _anchorDamageDealer;
     [SerializeField] private LayerMask _obstacleLayers;
+    [SerializeField] private GroundedAnchor _groundedAnchor;
+    [SerializeField] private AnchorSnapper _anchorSnapper;
+    private bool _anchorIsBeingSnapped;
 
     [Header("NEW TRAJECTORY")]
     [SerializeField] private LineRenderer _maxForceTrajectory;
@@ -35,6 +38,7 @@ public class Anchor : MonoBehaviour
 
     [Header("PULL")]
     [SerializeField, Range(0.0f, 20.0f)] private float _pulledTowardsOwnerAccelearation = 2.0f;
+    private bool _isBeingPulled = false;
 
     [Header("PULL ATTACK")]
     [SerializeField, Range(0, 1)] float _pullAttackArchLerp = 0;
@@ -60,7 +64,7 @@ public class Anchor : MonoBehaviour
 
 
 
-    private enum AnchorStates
+    public enum AnchorStates
     {
         WithOwner,
         OnAir,
@@ -108,13 +112,21 @@ public class Anchor : MonoBehaviour
         _currentState = AnchorStates.OnGround;
 
         _anchorDamageDealer.DealGroundHitDamage(Position, _throwStrength01);
+        
+        _groundedAnchor.gameObject.SetActive(true);
     }
 
     private void OnTriggerEnter(Collider otherCollider)
     {
-        if (!IsOnAir()) return;
-
-        _anchorDamageDealer.DealThrowHitDamage(otherCollider.gameObject, Position);
+        if (IsOnAir())
+        {
+            _anchorDamageDealer.DealThrowHitDamage(otherCollider.gameObject, Position);
+        }       
+        else if (_isBeingPulled)
+        {
+            
+            _anchorDamageDealer.DealPullBackDamage(otherCollider.gameObject, _ownerTransform.position);            
+        }
     }
 
     public void InstantReturnToOwner()
@@ -128,6 +140,7 @@ public class Anchor : MonoBehaviour
     public void ReturnToOwner()
     {
         SetStill();
+        _groundedAnchor.gameObject.SetActive(false);
         _anchorTransform.SetParent(_ownerTransform);
         SetGrabbedPosition();
 
@@ -142,7 +155,7 @@ public class Anchor : MonoBehaviour
 
     public void GetThrown(float strength01, Vector3 lookDirection)
     {
-        ComputeTrajectory(strength01, lookDirection);
+        CorrectTrajectory(strength01, lookDirection);
 
         SetAimingPositionInstantly();
         _anchorTransform.SetParent(null);
@@ -180,6 +193,17 @@ public class Anchor : MonoBehaviour
         }
     }
     
+    private void CorrectTrajectory(float strength01, Vector3 lookDirection)
+    {
+        ComputeTrajectory(strength01, lookDirection);
+
+        _anchorSnapper.ClearState();
+        _anchorIsBeingSnapped = _anchorSnapper.HasSnapTarget(_trajectoryPathPoints);
+        if (_anchorIsBeingSnapped)
+        {
+            _anchorSnapper.CorrectTrajectoryPath(_trajectoryPathPoints);
+        }
+    }
 
 
     public bool IsOnAir()
@@ -196,6 +220,11 @@ public class Anchor : MonoBehaviour
     }
 
 
+    public void ChangeState(AnchorStates newState)
+    {
+        _currentState = newState;
+    }
+
 
     private Vector3 GetTrajectoryPosition(float time, Vector3 startVelocity, Vector3 startPosition)
     {
@@ -209,9 +238,29 @@ public class Anchor : MonoBehaviour
 
         SetMovable();
         //_rigidbody.AddForce(startVelocity, ForceMode.Impulse);
+        float trajectoryDistance = Vector3.Distance(_trajectoryPathPoints[0], _trajectoryPathPoints[_trajectoryPathPoints.Length - 1]) * 0.15f;
+        float maxThrowDuration = _maxThrowDuration * trajectoryDistance;
+        float minThrowDuration = _minThrowDuration * trajectoryDistance;
 
-        float duration = Mathf.Lerp(_minThrowDuration, _maxThrowDuration, _forceCurveNewTrajectory.Evaluate(_throwStrength01));
-        _rigidbody.DOLocalPath(_trajectoryPathPoints, duration, PathType.CatmullRom);
+        float duration = Mathf.Lerp(minThrowDuration, maxThrowDuration, _forceCurveNewTrajectory.Evaluate(_throwStrength01));
+
+        if (_anchorIsBeingSnapped)
+        {
+            _rigidbody.DOLocalPath(_trajectoryPathPoints, duration, PathType.CatmullRom)
+                .SetEase(Ease.OutQuad)
+                .OnComplete(() => {
+                    if (IsOnAir())
+                    {
+                        SetSnapped();
+                    }
+                });
+
+            _anchorSnapper.ConfirmSnapping(duration);
+        }
+        else
+        {
+            _rigidbody.DOLocalPath(_trajectoryPathPoints, duration, PathType.CatmullRom);
+        }
     }
 
     private void DrawTrajectory(Vector3 startVelocity)
@@ -272,6 +321,8 @@ public class Anchor : MonoBehaviour
         _rigidbody.interpolation = RigidbodyInterpolation.None;
 
         _hitTrigger.enabled = false;
+
+        _isBeingPulled = false;
     }
     private void SetMovable()
     {
@@ -282,6 +333,8 @@ public class Anchor : MonoBehaviour
         _rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
 
         _hitTrigger.enabled = true;
+
+        _isBeingPulled = false;
     }
     public void SetPullMovable()
     {
@@ -290,8 +343,17 @@ public class Anchor : MonoBehaviour
         _rigidbody.useGravity = true;
         _rigidbody.isKinematic = false;
         _rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
+
+        _hitTrigger.enabled = true;
+
+        _isBeingPulled = true;
     }
 
+    private void SetSnapped()
+    {
+        SetStill();
+        _currentState = AnchorStates.OnGround;
+    }
 
     private void UpdateOwnerBinderLine()
     {
@@ -314,7 +376,7 @@ public class Anchor : MonoBehaviour
 
     public void SetAimingPosition()
     {
-        float duration = Vector3.Distance(_anchorTransform.position, _aimingPosition) * 0.02f;
+        float duration = Vector3.Distance(_anchorTransform.position, _aimingPosition) * 0.01f;
 
         _anchorTransform.DOKill();
         _anchorTransform.DOLocalMove(_aimingPosition, duration);
@@ -326,7 +388,7 @@ public class Anchor : MonoBehaviour
     }
     public void SetGrabbedPosition()
     {
-        float duration = Vector3.Distance(_anchorTransform.position, _grabbedPosition) * 0.02f;
+        float duration = Vector3.Distance(_anchorTransform.position, _grabbedPosition) * 0.01f;
 
         _anchorTransform.DOKill();
         _anchorTransform.DOLocalMove(_grabbedPosition, duration);
@@ -393,7 +455,7 @@ public class Anchor : MonoBehaviour
             return false;
         }
 
-        if (Physics.Raycast(Position, DirectionTowardsOwner(), distance, _obstacleLayers))
+        if (Physics.Raycast(Position, DirectionTowardsOwner(), distance, _obstacleLayers, QueryTriggerInteraction.Ignore))
         {
             return false;
         }
@@ -414,7 +476,8 @@ public class Anchor : MonoBehaviour
         endPosition.y += offsetHeight;
 
         Vector3 directionToEndPosition = (endPosition - ownerPosition).normalized;
-        if (Physics.Raycast(ownerPosition, directionToEndPosition, out RaycastHit hit, Vector3.Distance(ownerPosition, endPosition), _obstacleLayers))
+        if (Physics.Raycast(ownerPosition, directionToEndPosition, out RaycastHit hit, Vector3.Distance(ownerPosition, endPosition), _obstacleLayers, 
+            QueryTriggerInteraction.Ignore))
         {
             endPosition = hit.point - directionToEndPosition * 0.6f;
         }
@@ -428,7 +491,7 @@ public class Anchor : MonoBehaviour
     {
         if (Vector3.Distance(Position, _ownerTransform.position) < 2.0f) return false;
 
-        Vector3 ownerForward = -_ownerTransform.forward;
+        Vector3 ownerForward = _ownerTransform.forward;
         Vector3 directionFromOwner = -DirectionTowardsOwnerOnPlane();
 
         float angle = Mathf.Acos(Vector3.Dot(ownerForward, directionFromOwner)) * Mathf.Rad2Deg;
@@ -439,7 +502,7 @@ public class Anchor : MonoBehaviour
     public async void StartChargedPullAttack(float duration)
     {
         Vector3 ownerPosition = _ownerTransform.position;
-        Vector3 ownerForward = -_ownerTransform.forward;
+        Vector3 ownerForward = _ownerTransform.forward;
         float distance = _springJoint.maxDistance * 0.5f;
 
         Vector3 endPosition = ownerPosition + (ownerForward * distance);

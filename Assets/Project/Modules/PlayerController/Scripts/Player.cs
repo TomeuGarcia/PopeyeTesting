@@ -13,6 +13,7 @@ public class Player : MonoBehaviour, IHealthTarget
     [SerializeField] private PlayerController _playerController;
     [SerializeField] private Transform _targetForEnemies;
     [SerializeField] private MeshRenderer _mesh;
+    [SerializeField] private Animator _animator;
     private Material _meshMaterial;
     private Color _defaultMeshColor;
 
@@ -133,4 +134,11 @@ public class Player : MonoBehaviour, IHealthTarget
         _healthSystem.HealToMax();
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    public async Task MeleeAttack()
+    {
+        //play anim
+        _animator.SetTrigger("Attack");
+        await Task.Delay((int)((0.5f)*1000));
+    }
 }

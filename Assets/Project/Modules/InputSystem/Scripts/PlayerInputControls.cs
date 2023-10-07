@@ -339,7 +339,7 @@ namespace InputSystem
                 {
                     ""name"": """",
                     ""id"": ""ad7c8889-6924-4ae2-b310-dfe57bb9dd80"",
-                    ""path"": ""<Gamepad>/buttonWest"",
+                    ""path"": ""<Gamepad>/leftTrigger"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Desktop"",

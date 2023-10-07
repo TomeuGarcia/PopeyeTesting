@@ -13,6 +13,7 @@ public class EnemyStateMachine : IEnemyStateMachine
     [SerializeField, Range(0.0f, 20.0f)] private float _dashDistance = 4.0f;
 
     [Header("DURATIONS")]
+    [SerializeField, Range(0.0f, 10.0f)] private float _minIdleDuration = 0.5f;
     [SerializeField, Range(0.0f, 10.0f)] private float _dashPrepareDuration = 1.0f;
     [SerializeField, Range(0.0f, 10.0f)] private float _dashExecutionDuration = 0.5f;
     [SerializeField, Range(0.0f, 10.0f)] private float _dashRecoverDuration = 2.0f;
@@ -35,7 +36,7 @@ public class EnemyStateMachine : IEnemyStateMachine
 
     private void Init()
     {
-        EnemyIdleState idleState = new EnemyIdleState(_enemy, _chaseStartDistance);
+        EnemyIdleState idleState = new EnemyIdleState(_enemy, _chaseStartDistance, _minIdleDuration);
         EnemyChasingState chasingState = new EnemyChasingState(_enemy, _loseInterestDistance, _attackStartDistance);
         EnemyDashingState dashingState = new EnemyDashingState(_enemy, _dashPrepareDuration, _dashExecutionDuration, _dashRecoverDuration, _dashDistance, 
             _enemy.MaxMoveSpeed);

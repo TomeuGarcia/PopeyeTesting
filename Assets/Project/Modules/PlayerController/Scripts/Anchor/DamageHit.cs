@@ -24,7 +24,7 @@ public class DamageHit
         get { return _knockbackForce; }
         set { _knockbackForce = value; }
     }
-    
+
     
     float _stunDuration;
     public float StunDuration
@@ -40,5 +40,6 @@ public class DamageHit
         _knockbackForce = knockbackForce;
         _stunDuration = stunDuration;
     }
+
 
 }

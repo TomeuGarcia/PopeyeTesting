@@ -90,6 +90,11 @@ public class AnchorHealthDrainer : MonoBehaviour
         _canHeal = _staminaSystem.HasMaxStamina();
 
         _anchorMaterial.SetFloat("_IsCharged", _canHeal ? 1.0f : 0.0f);
+            }
+    
+    public void OnMeleeAttackToAnchor()
+    {
+        _anchorMaterial.SetFloat("_IsCharged", _canHeal ? 1.0f : 0.0f);
     }
 
     private void HealOwner()

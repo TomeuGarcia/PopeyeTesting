@@ -27,6 +27,11 @@ public class AnchorDamageDealer : MonoBehaviour
     [SerializeField, Range(0.0f, 5.0f)] private float _meleeHitStunDuration = 0.4f;
     [SerializeField] private TriggerNotifier _meleeHitBoxNotifier;
 
+    [Header("PULL BACK HIT")]
+    [SerializeField, Range(0.0f, 20.0f)] private float _pullBackHitDamage = 5.0f;
+    [SerializeField, Range(0.0f, 500.0f)] private float _pullBackHitKnockbackForce = 80.0f;
+    [SerializeField, Range(0.0f, 5.0f)] private float _pullBackHitStunDuration = 0.4f;
+
     [Header("PREFABS")]
     [SerializeField] private DamageHitEffect _hitEffectPrefab;
     [SerializeField] private AnchorHealthDrainEffect _healthDrainEffectPrefab;
@@ -35,6 +40,7 @@ public class AnchorDamageDealer : MonoBehaviour
     private DamageHit _throwHit;
     private DamageHit _groundHit;
     private DamageHit _meleeHit;
+    private DamageHit _pullBackHit;
 
 
     public delegate void AnchorDamageDealerEvent(DamageHit damageHit);
@@ -49,6 +55,7 @@ public class AnchorDamageDealer : MonoBehaviour
         _throwHit = new DamageHit(_throwHitDamage, Vector3.zero, _throwHitKnockbackForce, _throwHitStunDuration);
         _groundHit = new DamageHit(_groundHitDamage, Vector3.zero, _groundHitKnockbackForce, _groundHitStunDuration);
         _meleeHit = new DamageHit(_meleeHitDamage, Vector3.zero, _meleeHitKnockbackForce, _meleeHitStunDuration);
+        _pullBackHit = new DamageHit(_pullBackHitDamage, Vector3.zero, _pullBackHitKnockbackForce, _pullBackHitStunDuration);
 
         OnValidate();
     }
@@ -91,9 +98,20 @@ public class AnchorDamageDealer : MonoBehaviour
         }        
     }
 
+    public void DealPullBackDamage(GameObject hitObject, Vector3 dealerPosition)
+    {
+        _pullBackHit.Position = dealerPosition;
+
+        if (TryDealDamage(hitObject, _pullBackHit))
+        {
+            SpawnHitEffect(hitObject);
+        }
+    }
+
     public async void DealGroundHitDamage(Vector3 dealerPosition, float sizeMultiplier)
     {
         _groundHit.Position = dealerPosition;
+
 
         sizeMultiplier = _groundHitSizeCurve.Evaluate(sizeMultiplier);
         _groundHitNotifier.transform.position = dealerPosition;
@@ -147,7 +165,7 @@ public class AnchorDamageDealer : MonoBehaviour
             return false;
         }
 
-        if (!hitTarget.CanBeDamaged())
+        if (!hitTarget.CanBeDamaged(damageHit))
         {
             return false;
         }

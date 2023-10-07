@@ -56,6 +56,7 @@ public class EnemyDashingState : IEnemyState
         {
             _enemy.transform.DOKill();
             _dashCancellationToken.ThrowIfCancellationRequested();
+            _finishedDashing = true;
         }
     }
 
@@ -85,18 +86,20 @@ public class EnemyDashingState : IEnemyState
     private async void StartDashSequence()
     {
         ComputeDashStartPosition();
+        ComputeDashEndPosition();
+        
+        _enemy.SetCanRotate(false);
         _enemy.transform.DOMove(_dashStartPosition, _dashExecutionDuration)
             .SetEase(Ease.InOutQuart);
         await Task.Delay((int)(_dashPrepareDuration * 1000), _dashCancellationToken);
 
-
-        ComputeDashEndPosition();
-        _enemy.SetCanRotate(false);
+        if (_finishedDashing) return;
 
         _enemy.transform.DOMove(_dashEndPosition, _dashExecutionDuration)
             .SetEase(Ease.OutQuart);
         await Task.Delay((int)(_dashExecutionDuration * 1000), _dashCancellationToken);
 
+        if (_finishedDashing) return;
 
         await Task.Delay((int)(_dashRecoverDuration * 1000), _dashCancellationToken);
         
