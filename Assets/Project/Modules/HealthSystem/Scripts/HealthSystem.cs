@@ -8,6 +8,7 @@ public class HealthSystem : IValueStat
     private float _maxHealth;
     private float _currentHealth;
     public float MaxHealth => _maxHealth;    
+    public float CurrentHealth => _currentHealth;    
 
     private bool _isInvulnerable;
     public bool IsInvulnerable
@@ -25,14 +26,18 @@ public class HealthSystem : IValueStat
     }
 
 
-    public void TakeDamage(float damageAmount)
+    public float TakeDamage(float damageAmount)
     {
-        if (IsInvulnerable) { return; }
+        if (IsInvulnerable) { return 0.0f; }
+
+        float receivedDamage = Mathf.Min(damageAmount, _currentHealth);
 
         _currentHealth -= damageAmount;
         _currentHealth = Mathf.Max(0f, _currentHealth);
 
         OnValueUpdate?.Invoke();
+
+        return receivedDamage;
     }
     
     public void Kill()

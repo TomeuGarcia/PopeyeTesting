@@ -60,6 +60,10 @@ public class StaminaSystem : IValueStat
     {
         return _currentStamina == _maxStamina;
     }
+    public bool HasEnoughStamina(float staminaAmount)
+    {
+        return _currentStamina >= staminaAmount;
+    }
 
 
     public override float GetValuePer1Ratio()

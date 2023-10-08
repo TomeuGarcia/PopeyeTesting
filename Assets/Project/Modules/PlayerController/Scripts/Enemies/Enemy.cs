@@ -72,11 +72,11 @@ public class Enemy : MonoBehaviour, IDamageHitTarget, IMovementInputHandler
     }
 
 
-    public void TakeHit(DamageHit damageHit)
+    public DamageHitResult TakeHit(DamageHit damageHit)
     {
-        TakeKnockback(damageHit.Position, damageHit.KnockbackForce);
+        TakeKnockback(damageHit.Position, damageHit.KnockbackForce);        
 
-        _healthSystem.TakeDamage(damageHit.Damage);
+        float receivedDamage = _healthSystem.TakeDamage(damageHit.Damage);
         if (_healthSystem.IsDead())
         {
             _stateMachine.OverwriteCurrentState(IEnemyState.States.Dead);
@@ -85,6 +85,8 @@ public class Enemy : MonoBehaviour, IDamageHitTarget, IMovementInputHandler
         {
             GetStunned(damageHit.StunDuration);
         }
+
+        return new DamageHitResult(receivedDamage);
     }
 
     public bool CanBeDamaged(DamageHit damageHit)

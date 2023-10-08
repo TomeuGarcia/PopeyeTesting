@@ -31,7 +31,7 @@ public class PlacedAnchorPullAttackState : IPlayerState
         _maxMoveSpeed = maxMoveSpeed;
         _movesetInputHandler = movesetInputHandler;
 
-        _attackChargeDuration = 0.5f;
+        _attackChargeDuration = 0.2f;
         _attackExecuteDuration = 0.3f;
     }
 

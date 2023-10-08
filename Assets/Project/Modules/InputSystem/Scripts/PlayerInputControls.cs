@@ -91,6 +91,15 @@ namespace InputSystem
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ExplosionAbility"",
+                    ""type"": ""Button"",
+                    ""id"": ""641cb262-979a-4fba-84c3-3cff4ac2baee"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -368,6 +377,28 @@ namespace InputSystem
                     ""action"": ""PullAttack"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d50d6398-07a2-4430-86ce-a7d7fd3f93ad"",
+                    ""path"": ""<Keyboard>/q"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Desktop"",
+                    ""action"": ""ExplosionAbility"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""be52f81c-fbb6-4859-936b-79bd633117bb"",
+                    ""path"": ""<Gamepad>/buttonNorth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Desktop"",
+                    ""action"": ""ExplosionAbility"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -410,6 +441,7 @@ namespace InputSystem
             m_Land_Grab = m_Land.FindAction("Grab", throwIfNotFound: true);
             m_Land_MeleeAttack = m_Land.FindAction("MeleeAttack", throwIfNotFound: true);
             m_Land_PullAttack = m_Land.FindAction("PullAttack", throwIfNotFound: true);
+            m_Land_ExplosionAbility = m_Land.FindAction("ExplosionAbility", throwIfNotFound: true);
         }
 
         public void Dispose()
@@ -476,6 +508,7 @@ namespace InputSystem
         private readonly InputAction m_Land_Grab;
         private readonly InputAction m_Land_MeleeAttack;
         private readonly InputAction m_Land_PullAttack;
+        private readonly InputAction m_Land_ExplosionAbility;
         public struct LandActions
         {
             private @PlayerInputControls m_Wrapper;
@@ -487,6 +520,7 @@ namespace InputSystem
             public InputAction @Grab => m_Wrapper.m_Land_Grab;
             public InputAction @MeleeAttack => m_Wrapper.m_Land_MeleeAttack;
             public InputAction @PullAttack => m_Wrapper.m_Land_PullAttack;
+            public InputAction @ExplosionAbility => m_Wrapper.m_Land_ExplosionAbility;
             public InputActionMap Get() { return m_Wrapper.m_Land; }
             public void Enable() { Get().Enable(); }
             public void Disable() { Get().Disable(); }
@@ -517,6 +551,9 @@ namespace InputSystem
                     @PullAttack.started -= m_Wrapper.m_LandActionsCallbackInterface.OnPullAttack;
                     @PullAttack.performed -= m_Wrapper.m_LandActionsCallbackInterface.OnPullAttack;
                     @PullAttack.canceled -= m_Wrapper.m_LandActionsCallbackInterface.OnPullAttack;
+                    @ExplosionAbility.started -= m_Wrapper.m_LandActionsCallbackInterface.OnExplosionAbility;
+                    @ExplosionAbility.performed -= m_Wrapper.m_LandActionsCallbackInterface.OnExplosionAbility;
+                    @ExplosionAbility.canceled -= m_Wrapper.m_LandActionsCallbackInterface.OnExplosionAbility;
                 }
                 m_Wrapper.m_LandActionsCallbackInterface = instance;
                 if (instance != null)
@@ -542,6 +579,9 @@ namespace InputSystem
                     @PullAttack.started += instance.OnPullAttack;
                     @PullAttack.performed += instance.OnPullAttack;
                     @PullAttack.canceled += instance.OnPullAttack;
+                    @ExplosionAbility.started += instance.OnExplosionAbility;
+                    @ExplosionAbility.performed += instance.OnExplosionAbility;
+                    @ExplosionAbility.canceled += instance.OnExplosionAbility;
                 }
             }
         }
@@ -564,6 +604,7 @@ namespace InputSystem
             void OnGrab(InputAction.CallbackContext context);
             void OnMeleeAttack(InputAction.CallbackContext context);
             void OnPullAttack(InputAction.CallbackContext context);
+            void OnExplosionAbility(InputAction.CallbackContext context);
         }
     }
 }

@@ -339,7 +339,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1298613553734899345}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: Claw
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -609,7 +609,7 @@ MonoBehaviour:
   m_PreserveMeshAssetOnDestroy: 0
   assetGuid: 
   m_Mesh: {fileID: 0}
-  m_VersionIndex: 1251
+  m_VersionIndex: 1257
   m_IsSelectable: 1
   m_SelectedFaces: 
   m_SelectedEdges: []
@@ -1030,7 +1030,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1298613553892756720}
   m_Layer: 0
-  m_Name: GameObject (1)
+  m_Name: Claw
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1063,7 +1063,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1298613553915474818}
   m_Layer: 0
-  m_Name: GameObject (2)
+  m_Name: Claw
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1869,7 +1869,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1298613555171199104}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0.1, z: 0}
   m_LocalScale: {x: 1, y: 0.1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1936,7 +1936,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1298613555223749064}
   m_Layer: 0
-  m_Name: GameObject (3)
+  m_Name: Claw
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2206,7 +2206,7 @@ MonoBehaviour:
   m_PreserveMeshAssetOnDestroy: 0
   assetGuid: 
   m_Mesh: {fileID: 0}
-  m_VersionIndex: 1248
+  m_VersionIndex: 1254
   m_IsSelectable: 1
   m_SelectedFaces: 
   m_SelectedEdges: []
@@ -2995,6 +2995,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _snapSpot: {fileID: 1298613554200958831}
   _clawsTransform: {fileID: 1298613554076456511}
+  _claws:
+  - {fileID: 1298613553734899345}
+  - {fileID: 1298613553892756720}
+  - {fileID: 1298613553915474818}
+  - {fileID: 1298613555223749064}
 --- !u!135 &1298613555563100417
 SphereCollider:
   m_ObjectHideFlags: 0

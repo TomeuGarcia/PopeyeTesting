@@ -7,6 +7,7 @@ using UnityEngine.UI;
 public class ValueStatBar : MonoBehaviour
 {
     [Header("COMPONENTS")]
+    [SerializeField] private RectTransform _mainTransform;
     [SerializeField] private Image _fillImage;
     [SerializeField] private Image _lazyBarFillImage;
     [SerializeField, Range(0.0f, 10.0f)] private float _fullFillDuration = 1.0f;
@@ -16,7 +17,7 @@ public class ValueStatBar : MonoBehaviour
     [SerializeField] private Color _originalColor = Color.blue;
     [SerializeField] private Color _lazyColor = Color.black;
     [SerializeField] private Color _incrementColor = Color.green;
-    [SerializeField] private Color _decrementColor = Color.red;
+    [SerializeField] private Color _decrementColor = Color.red;    
 
     private IValueStat _valueStat;
     private bool _isSubscribed;
@@ -115,6 +116,12 @@ public class ValueStatBar : MonoBehaviour
             {
                 _fillImage.DOColor(_originalColor, duration);
             });
+    }
+
+    public void PlayErrorAnimation()
+    {
+        _mainTransform.DOComplete();
+        _mainTransform.DOPunchPosition(Vector3.right * 20.0f, 0.5f);
     }
 
 }

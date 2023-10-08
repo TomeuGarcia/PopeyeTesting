@@ -20,7 +20,7 @@ public class EnemySpawnerInteractor_Trigger : AEnemySpawnerInteractor
     {
         foreach (AWorldInteractor worldInteractor in _worldInteractors)
         {
-            worldInteractor.EnterDeactivatedState();
+            worldInteractor.AddDeactivationInput();
         }
     }
 
@@ -33,7 +33,7 @@ public class EnemySpawnerInteractor_Trigger : AEnemySpawnerInteractor
 
         foreach (AWorldInteractor worldInteractor in _worldInteractors)
         {
-            worldInteractor.EnterActivatedState();
+            worldInteractor.AddActivationInput();
         }
     }
 }

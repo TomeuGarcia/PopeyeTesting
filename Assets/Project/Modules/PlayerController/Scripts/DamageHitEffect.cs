@@ -7,6 +7,7 @@ public class DamageHitEffect : MonoBehaviour
     [SerializeField] private MeshRenderer _mesh;
     [SerializeField] private Transform _meshTransform;
     [SerializeField, Range(0.0f, 10.0f)] private float _duration = 0.5f;
+    [SerializeField] private Color _color = Color.white;
 
 
     public float Duration
@@ -31,6 +32,7 @@ public class DamageHitEffect : MonoBehaviour
 
         material.SetFloat("_StartTime", Time.time);
         material.SetFloat("_WaveDuration", _duration);
+        material.SetColor("_WaveColor", _color);
 
         yield return new WaitForSeconds(_duration);
 

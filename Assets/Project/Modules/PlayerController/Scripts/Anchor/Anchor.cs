@@ -19,7 +19,13 @@ public class Anchor : MonoBehaviour
     [SerializeField] private LayerMask _obstacleLayers;
     [SerializeField] private GroundedAnchor _groundedAnchor;
     [SerializeField] private AnchorSnapper _anchorSnapper;
+    [SerializeField] private AnchorHealthDrainer _anchorHealthDrainer;
     private bool _anchorIsBeingSnapped;
+
+    [Header("STAMINA")]
+    [SerializeField] private ValueStatBar _staminaBar;
+    [SerializeField, Range(0.0f, 500.0f)] private float _requiredDrainedHealth = 150.0f;
+    private StaminaSystem _staminaSystem;
 
     [Header("NEW TRAJECTORY")]
     [SerializeField] private LineRenderer _maxForceTrajectory;
@@ -49,6 +55,9 @@ public class Anchor : MonoBehaviour
     [SerializeField, Range(0.0f, 100.0f)] private float _maxForce = 20.0f;
     private Vector3 _velocity;
     private float _throwStrength01;
+
+    [Header("ABILITIES")]
+    [SerializeField, Range(0.0f, 500.0f)] private float _explosionStamina = 100.0f;
 
 
     public Vector3 Position => _anchorTransform.position;
@@ -84,6 +93,10 @@ public class Anchor : MonoBehaviour
         SetStill();
 
         _trajectoryPathPoints = new Vector3[_maxForceTrajectory.positionCount];
+
+        _staminaSystem = new StaminaSystem(_requiredDrainedHealth, 0.0f);
+        _staminaBar.Init(_staminaSystem);
+        _anchorHealthDrainer.AwakeInit(_staminaSystem);
     }
 
     private void Update()
@@ -411,14 +424,14 @@ public class Anchor : MonoBehaviour
 
         _anchorTransform.DOComplete();
 
-        _anchorTransform.DOBlendableLocalMoveBy(new Vector3(0.5f, 0.0f, -1.0f), prepareDuration).OnComplete(() =>
+        _anchorTransform.DOBlendableLocalMoveBy(new Vector3(-0.5f, 0.0f, 1.0f), prepareDuration).OnComplete(() =>
         {
-            _anchorTransform.DOBlendableLocalMoveBy(new Vector3(0.0f, 0.0f, -1.2f), halfDuration).OnComplete(() =>
+            _anchorTransform.DOBlendableLocalMoveBy(new Vector3(0.0f, 0.0f, 1.2f), halfDuration).OnComplete(() =>
             {
-                _anchorTransform.DOBlendableLocalMoveBy(new Vector3(0.0f, 0.0f, 1.2f), halfDuration);
+                _anchorTransform.DOBlendableLocalMoveBy(new Vector3(0.0f, 0.0f, -1.2f), halfDuration);
             });
 
-            _anchorTransform.DOBlendableLocalMoveBy(new Vector3(-2.0f, 0.0f, 0.0f), duration).OnComplete(() =>
+            _anchorTransform.DOBlendableLocalMoveBy(new Vector3(2.0f, 0.0f, 0.0f), duration).OnComplete(() =>
             {
                 _anchorTransform.DOLocalMove(_grabbedPosition, recoverDuration).OnComplete(() =>
                 {
@@ -537,5 +550,22 @@ public class Anchor : MonoBehaviour
         _rigidbody.AddForce(Vector3.down * 50f, ForceMode.Impulse);
     }
 
+
+    public bool CanUseExplosionAbility()
+    {
+        if (!_staminaSystem.HasEnoughStamina(_explosionStamina))
+        {
+            _staminaBar.PlayErrorAnimation();
+            return false;
+        }
+
+        return true;
+    }
+
+    public void UseExplosionAbility()
+    {
+        _anchorDamageDealer.DealExplosionDamage(Position);
+        _staminaSystem.Spend(_explosionStamina);
+    }
 
 }

@@ -18,7 +18,7 @@ public class EnemyChasingState : IEnemyState
         _loseInterestDistance = loseInterestDistance;
         _attackStartDistance = attackStartDistance;
         _timeLastDash = 0.0f;
-        _dashCooldownTime = 3.0f;
+        _dashCooldownTime = 2.0f;
     }
 
 
@@ -29,7 +29,7 @@ public class EnemyChasingState : IEnemyState
 
     public override void Exit()
     {
-        
+        _enemy.SetMaxMoveSpeed(_enemy.MaxMoveSpeed);
     }
     public override void Interrupt()
     {
@@ -40,11 +40,18 @@ public class EnemyChasingState : IEnemyState
     {
         float distanceFromTarget = Vector3.Distance(_enemy.TargetPosition, _enemy.Position);
 
-        if (distanceFromTarget < _attackStartDistance && _enemy.IsTargetOnReachableHeight() && DashCooldownFinished())
+        if (distanceFromTarget < _attackStartDistance && _enemy.IsTargetOnReachableHeight())
         {
-            _timeLastDash = Time.time;
-            _nextState = States.Dashing;            
-            return true;
+            if (DashCooldownFinished())
+            {
+                _timeLastDash = Time.time;
+                _nextState = States.Dashing;
+                return true;
+            }
+            else
+            {
+                _enemy.SetMaxMoveSpeed(1.0f);
+            }
         }
 
         if (distanceFromTarget > _loseInterestDistance)
