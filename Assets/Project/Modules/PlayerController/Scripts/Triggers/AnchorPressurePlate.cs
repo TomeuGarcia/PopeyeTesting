@@ -35,9 +35,11 @@ public class AnchorPressurePlate : MonoBehaviour, IDamageHitTarget
         return false;
     }
 
-    public void TakeHit(DamageHit damageHit)
+    public DamageHitResult TakeHit(DamageHit damageHit)
     {
         OnTakeAnchorHit();
+
+        return new DamageHitResult(0);
     }
 
     protected virtual bool CanBeTriggered(DamageHit damageHit)

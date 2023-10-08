@@ -108,9 +108,12 @@ public class WithoutAnchorState : IPlayerState
 
             _nextState = States.PlacedAnchorPullAttack;
             return true;
-        }        
+        }
 
-
+        if (_movesetInputHandler.IsExplosionAbility_Pressed() && _anchor.CanUseExplosionAbility())
+        {
+            _anchor.UseExplosionAbility();
+        }
         
 
         return false;
@@ -142,10 +145,7 @@ public class WithoutAnchorState : IPlayerState
         _playerController.enabled = true;
         _ownerIsBeingAttracted = false;
     }
-    
-    /// <summary>
-    /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// </summary>
+        
     private async void MeleeAttack()
     {
         _playerController.MaxSpeed = 0.0f;

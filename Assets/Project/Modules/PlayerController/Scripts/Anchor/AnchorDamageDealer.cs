@@ -6,6 +6,9 @@ using UnityEngine.UIElements;
 
 public class AnchorDamageDealer : MonoBehaviour
 {
+    [Header("REFERENCES")]
+    [SerializeField] private AnchorHealthDrainer _anchorHealthDrainer;
+
     [Header("THROW HIT")]
     [SerializeField, Range(0.0f, 20.0f)] private float _throwHitDamage = 5.0f;
     [SerializeField, Range(0.0f, 500.0f)] private float _throwHitKnockbackForce = 80.0f;
@@ -13,7 +16,7 @@ public class AnchorDamageDealer : MonoBehaviour
 
     [Header("GROUND HIT")]
     [SerializeField] private TriggerNotifier _groundHitNotifier;
-    [SerializeField, Range(0.0f, 20.0f)] private float _groundHitDamage = 10.0f;
+    [SerializeField, Range(0.0f, 30.0f)] private float _groundHitDamage = 10.0f;
     [SerializeField, Range(0.0f, 500.0f)] private float _groundHitKnockbackForce = 120.0f;
     [SerializeField, Range(0.0f, 5.0f)] private float _groundHitStunDuration = 0.4f;
     [SerializeField, Range(0.0f, 10.0f)] private float _groundHitRadius = 2.0f;
@@ -22,18 +25,25 @@ public class AnchorDamageDealer : MonoBehaviour
     [SerializeField] private AnimationCurve _groundHitSizeCurve;
 
     [Header("MELEE HIT")]
-    [SerializeField, Range(0.0f, 20.0f)] private float _meleeHitDamage = 5.0f;
+    [SerializeField, Range(0.0f, 30.0f)] private float _meleeHitDamage = 5.0f;
     [SerializeField, Range(0.0f, 500.0f)] private float _meleeHitKnockbackForce = 80.0f;
     [SerializeField, Range(0.0f, 5.0f)] private float _meleeHitStunDuration = 0.4f;
     [SerializeField] private TriggerNotifier _meleeHitBoxNotifier;
 
     [Header("PULL BACK HIT")]
-    [SerializeField, Range(0.0f, 20.0f)] private float _pullBackHitDamage = 5.0f;
+    [SerializeField, Range(0.0f, 30.0f)] private float _pullBackHitDamage = 5.0f;
     [SerializeField, Range(0.0f, 500.0f)] private float _pullBackHitKnockbackForce = 80.0f;
     [SerializeField, Range(0.0f, 5.0f)] private float _pullBackHitStunDuration = 0.4f;
+    
+    [Header("EXPLOSION HIT")]
+    [SerializeField, Range(0.0f, 30.0f)] private float _explosionHitDamage = 20.0f;
+    [SerializeField, Range(0.0f, 500.0f)] private float _explosionHitKnockbackForce = 80.0f;
+    [SerializeField, Range(0.0f, 5.0f)] private float _explosionHitStunDuration = 0.4f;
+    [SerializeField, Range(0.0f, 10.0f)] private float _explosionHitSize = 2.0f;
 
     [Header("PREFABS")]
     [SerializeField] private DamageHitEffect _hitEffectPrefab;
+    [SerializeField] private DamageHitEffect _explosionEffectPrefab;
     [SerializeField] private AnchorHealthDrainEffect _healthDrainEffectPrefab;
 
 
@@ -41,10 +51,8 @@ public class AnchorDamageDealer : MonoBehaviour
     private DamageHit _groundHit;
     private DamageHit _meleeHit;
     private DamageHit _pullBackHit;
+    private DamageHit _explosionHit;
 
-
-    public delegate void AnchorDamageDealerEvent(DamageHit damageHit);
-    public AnchorDamageDealerEvent OnDamageDealtEvent;
 
 
     private void Awake()
@@ -56,6 +64,7 @@ public class AnchorDamageDealer : MonoBehaviour
         _groundHit = new DamageHit(_groundHitDamage, Vector3.zero, _groundHitKnockbackForce, _groundHitStunDuration);
         _meleeHit = new DamageHit(_meleeHitDamage, Vector3.zero, _meleeHitKnockbackForce, _meleeHitStunDuration);
         _pullBackHit = new DamageHit(_pullBackHitDamage, Vector3.zero, _pullBackHitKnockbackForce, _pullBackHitStunDuration);
+        _explosionHit = new DamageHit(_explosionHitDamage, Vector3.zero, _explosionHitKnockbackForce, _explosionHitStunDuration);
 
         OnValidate();
     }
@@ -92,7 +101,7 @@ public class AnchorDamageDealer : MonoBehaviour
     {
         _throwHit.Position = dealerPosition;
 
-        if (TryDealDamage(hitObject, _throwHit))
+        if (TryDealDamage(hitObject, _throwHit, true))
         {
             SpawnHitEffect(hitObject);
         }        
@@ -102,7 +111,7 @@ public class AnchorDamageDealer : MonoBehaviour
     {
         _pullBackHit.Position = dealerPosition;
 
-        if (TryDealDamage(hitObject, _pullBackHit))
+        if (TryDealDamage(hitObject, _pullBackHit, true))
         {
             SpawnHitEffect(hitObject);
         }
@@ -117,7 +126,7 @@ public class AnchorDamageDealer : MonoBehaviour
         _groundHitNotifier.transform.position = dealerPosition;
         _groundHitNotifier.transform.localScale = Vector3.one * (_groundHitRadius * sizeMultiplier);
         
-        PlayGroundHitAreaAnimation(sizeMultiplier);
+        PlayGroundHitAreaAnimation(_groundHitScale * sizeMultiplier, _groundHitDuration, 0.3f);
 
         _groundHitNotifier.OnEnter += TryDealGroundDamage;
         _groundHitNotifier.EnableCollider();
@@ -130,7 +139,33 @@ public class AnchorDamageDealer : MonoBehaviour
 
     private void TryDealGroundDamage(Collider collider)
     {
-        TryDealDamage(collider.gameObject, _groundHit);
+        TryDealDamage(collider.gameObject, _groundHit, true);
+    }
+
+    public async void DealExplosionDamage(Vector3 dealerPosition)
+    {
+        _explosionHit.Position = dealerPosition;
+
+        Vector3 scale = Vector3.one * _explosionHitSize;
+        float duration = 0.5f;
+
+        _groundHitNotifier.transform.position = dealerPosition;
+        _groundHitNotifier.transform.localScale = scale / 2;
+
+        PlayExplosionHitAreaAnimation(scale, duration, 0.5f);
+
+        _groundHitNotifier.OnEnter += TryDealExplosionDamage;
+        _groundHitNotifier.EnableCollider();
+
+        await Task.Delay(MathUtilities.SecondsToMilliseconds(duration));
+
+        _groundHitNotifier.OnEnter -= TryDealExplosionDamage;
+        _groundHitNotifier.DisableCollider();
+    }
+
+    private void TryDealExplosionDamage(Collider collider)
+    {
+        TryDealDamage(collider.gameObject, _explosionHit, false);
     }
 
 
@@ -151,14 +186,14 @@ public class AnchorDamageDealer : MonoBehaviour
 
     private void TryDealMeleeDamage(Collider collider)
     {
-        if (TryDealDamage(collider.gameObject, _meleeHit))
+        if (TryDealDamage(collider.gameObject, _meleeHit, true))
         {
             SpawnHitEffect(collider.gameObject);
         }
     }
 
 
-    private bool TryDealDamage(GameObject hitObject, DamageHit damageHit)
+    private bool TryDealDamage(GameObject hitObject, DamageHit damageHit, bool restoresStamina)
     {
         if (!hitObject.TryGetComponent<IDamageHitTarget>(out IDamageHitTarget hitTarget))
         {
@@ -170,22 +205,34 @@ public class AnchorDamageDealer : MonoBehaviour
             return false;
         }
 
-        hitTarget.TakeHit(damageHit);
-        OnDamageDealtEvent?.Invoke(damageHit);
-
-        SpawnDrainHealthEffect(hitObject, damageHit);
+        DamageHitResult damageHitResult = hitTarget.TakeHit(damageHit);
+        
+        if (damageHitResult.ReceivedDamage > 0 && restoresStamina)
+        {
+            SpawnDrainHealthEffect(hitObject, damageHitResult.ReceivedDamage);
+            _anchorHealthDrainer.IncrementDrainedHealth(damageHitResult.ReceivedDamage);
+        }
 
         return true;
     }
 
 
-    private void PlayGroundHitAreaAnimation(float sizeMultiplier)
+    private void PlayGroundHitAreaAnimation(Vector3 scale, float duration, float shakeDuration)
     {
         DamageHitEffect hitEffect = Instantiate(_hitEffectPrefab, transform.position, Quaternion.LookRotation(Vector3.up, Vector3.forward));
-        hitEffect.LocalScale = _groundHitScale * sizeMultiplier;
-        hitEffect.Duration = _groundHitDuration;
+        hitEffect.LocalScale = scale;
+        hitEffect.Duration = duration;
 
-        CameraShake.Instance.PlayShake(0.05f, 0.3f);
+        CameraShake.Instance.PlayShake(0.05f, shakeDuration);
+    }
+    
+    private void PlayExplosionHitAreaAnimation(Vector3 scale, float duration, float shakeDuration)
+    {
+        DamageHitEffect hitEffect = Instantiate(_explosionEffectPrefab, transform.position, Quaternion.LookRotation(Vector3.up, Vector3.forward));
+        hitEffect.LocalScale = scale;
+        hitEffect.Duration = duration;
+
+        CameraShake.Instance.PlayShake(0.05f, shakeDuration);
     }
 
     private void SpawnHitEffect(GameObject hitTarget)
@@ -197,9 +244,9 @@ public class AnchorDamageDealer : MonoBehaviour
         }                  
     }
 
-    private void SpawnDrainHealthEffect(GameObject hitTarget, DamageHit damageHit)
+    private void SpawnDrainHealthEffect(GameObject hitTarget, float damageDealt)
     {
-        int emissionCount = (int)(damageHit.Damage * 0.5f);
+        int emissionCount = (int)(damageDealt * 0.5f);
         AnchorHealthDrainEffect healthDrainEffect = Instantiate(_healthDrainEffectPrefab);
         healthDrainEffect.Init(transform, hitTarget.transform.position, emissionCount);
     }

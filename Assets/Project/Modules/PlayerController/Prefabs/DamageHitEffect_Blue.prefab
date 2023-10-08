@@ -94,7 +94,7 @@ GameObject:
   - component: {fileID: 6324972233672227036}
   - component: {fileID: 6324972233672227037}
   m_Layer: 0
-  m_Name: DamageHitEffect
+  m_Name: DamageHitEffect_Blue
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -131,3 +131,4 @@ MonoBehaviour:
   _mesh: {fileID: 6324972232583645456}
   _meshTransform: {fileID: 6324972232583645462}
   _duration: 0.3
+  _color: {r: 0, g: 0.35686275, b: 0.90588236, a: 1}

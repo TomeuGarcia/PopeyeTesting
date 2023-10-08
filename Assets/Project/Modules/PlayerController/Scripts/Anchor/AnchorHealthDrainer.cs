@@ -18,33 +18,22 @@ public class AnchorHealthDrainer : MonoBehaviour
     private float _healTimer;
     [SerializeField] private AnimationCurve _chargedCurve;
 
-    [Header("KILLS")]
-    [SerializeField] private ValueStatBar _staminaBar;
-    [SerializeField, Range(0.0f, 500.0f)] private float _requiredDrainedHealth = 150.0f;
-    private StaminaSystem _staminaSystem;
-    private bool _canHeal;
-
     [Header("PREFABS")]
     [SerializeField] private AnchorHealthDrainEffect _healthDrainEffectPrefab;
 
 
     private Player _player;
+    private StaminaSystem _staminaSystem;
+    private bool _canHeal;
 
 
 
-    private void OnEnable()
+    public void AwakeInit(StaminaSystem staminaSystem)
     {
-        _anchorDamageDealer.OnDamageDealtEvent += IncrementDrainedHealth;
-    }
-    private void OnDisable()
-    {
-        _anchorDamageDealer.OnDamageDealtEvent -= IncrementDrainedHealth;
-    }
+        _staminaSystem = staminaSystem;
+        _staminaSystem.OnValueUpdate += CheckReset;
 
-    private void Awake()
-    {
-        _staminaSystem = new StaminaSystem(_requiredDrainedHealth, 0.0f);
-        _staminaBar.Init(_staminaSystem);
+
         _canHeal = false;
 
         _anchorMaterial = _anchorMesh.material;
@@ -52,6 +41,11 @@ public class AnchorHealthDrainer : MonoBehaviour
 
         _chainMaterial = _ownerBinderLine.material;
         SetChainVisuallyCharged(0.0f);
+    }
+
+    private void OnDestroy()
+    {
+        _staminaSystem.OnValueUpdate -= CheckReset;
     }
 
     private void Update()
@@ -82,15 +76,26 @@ public class AnchorHealthDrainer : MonoBehaviour
         }     
     }
 
-
-    private void IncrementDrainedHealth(DamageHit damageHit)
+    private void CheckReset()
     {
-        _staminaSystem.Restore(damageHit.Damage);
+        if (_canHeal && !_staminaSystem.HasMaxStamina())
+        {
+            _canHeal = false;
+            _healTimer = 0.0f;
+            SetChainVisuallyCharged(0.0f);
+            _anchorMaterial.SetFloat("_IsCharged", 0.0f);
+        }      
+    }
+
+
+    public void IncrementDrainedHealth(float restoreAmount)
+    {
+        _staminaSystem.Restore(restoreAmount);
 
         _canHeal = _staminaSystem.HasMaxStamina();
 
         _anchorMaterial.SetFloat("_IsCharged", _canHeal ? 1.0f : 0.0f);
-            }
+    }
     
     public void OnMeleeAttackToAnchor()
     {
