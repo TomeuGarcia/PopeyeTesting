@@ -30,18 +30,25 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Add: 0
+    - _Add: 1
     - _AmbientStrength: 0.052
-    - _Mult: 20
+    - _Dist: 2
+    - _MaskSharpness: 6.64
+    - _Mult: 0.09
     - _PaintNormalMultiplier: 0.41
-    - _SpecularPow: 1
+    - _PolarUVSize: 1
+    - _SpecularPow: 0.01
     - _SpecularStrength: 1
     - _TriplanarBlendFalloff: 8
+    - _VortexMaskSharpness: 10
+    - _VortexRadius: 2
+    - _VortexSpeed: 0.1
     - _WorldNormalMultiplier: 1.26
     - _XD: 58.47
     m_Colors:
-    - _AmbientColor: {r: 1, g: 1, b: 1, a: 1}
+    - _AmbientColor: {r: 0.745283, g: 0.745283, b: 0.745283, a: 1}
     - _PaintNormalSteps: {r: 4, g: 4, b: 4, a: 0}
-    - _Pos: {r: 0.82, g: 0, b: 0, a: 0}
-    - _TriplanarTextureSize: {r: 0.04, g: 0.04, b: 0.04, a: 0}
+    - _Pos: {r: 0, g: 1.3, b: 0, a: 0}
+    - _TriplanarTextureSize: {r: 0.7, g: 0.7, b: 0.04, a: 0}
+    - _VortexPos: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []

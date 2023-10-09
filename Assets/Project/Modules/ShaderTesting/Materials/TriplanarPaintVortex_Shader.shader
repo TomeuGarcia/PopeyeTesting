@@ -26,9 +26,13 @@ Shader "Unlit/TriplanarPaintVortex_Shader"
         _PaintNormalMultiplier("Paint Normal Multiplier", Range(0, 3)) = 0.3
         _PaintNormalSteps("Paint Normal Steps", Vector) = (4,4,4,0)
 
-        _Mult("Mult", Float) = 1
-        _Add("Add", Float) = 1
-        _Pos("Pos", Vector) = (0,0,0,0)
+        [Header(VORTEX)] 
+        [Space(10)]
+        _VortexSpeed("Vortex Speed", Float) = 1
+        _PolarUVSize("Polar UV Size", Float) = 1
+        _VortexPos("Vortex Pos", Vector) = (0,0,0,0)
+        _VortexRadius("Vortex Radius", Range(0, 10)) = 5
+        _VortexMaskSharpness("Vortex Mask Sharpness", Range(0, 10)) = 1
 
     }
     SubShader
@@ -77,10 +81,11 @@ Shader "Unlit/TriplanarPaintVortex_Shader"
             float _PaintNormalMultiplier, _WorldNormalMultiplier;
             float3 _PaintNormalSteps;
 
-            float PI2 = 6.28318530718;
-            float _Mult;
-            float _Add;
-            float3 _Pos;
+            float _VortexSpeed;
+            float _PolarUVSize;
+            float3 _VortexPos;
+            float _VortexRadius;
+            float _VortexMaskSharpness;
 
             v2f vert (appdata v)
             {
@@ -101,27 +106,46 @@ Shader "Unlit/TriplanarPaintVortex_Shader"
 
                 float3 triplanarWorldPosition = i.worldPosition * _TriplanarTextureSize;
 
-                float2 UV = triplanarWorldPosition.xz - _Pos.xz;//i.uv;
-                UV = abs(UV);
-                UV *= _Mult;  
-                UV += _Add;
-                UV = cartesianToPolar(UV, PI2);
-                UV %= 1.0f;
-
-                float2 uvUp = UV;//+ (float2(_Time.x, _Time.x) * _Mult);
-                float2 uvRight = triplanarWorldPosition.yz;
-                float2 uvForward = triplanarWorldPosition.xy;
-
-                fixed4 colorUp = fixed4(UV, 0, 1);//tex2D(_PaintTexture, uvUp);
-                fixed4 colorRight = tex2D(_PaintTexture, uvRight);
-                fixed4 colorForward = tex2D(_PaintTexture, uvForward);
 
 
-                fixed4 triplanarColor = getSeamlessTriplanarColor_sampled(i.worldNormal, 
-                                        colorUp, colorRight, colorForward, _TriplanarBlendFalloff);
-return triplanarColor;
+                float3 pos = float3(_VortexPos.x, i.worldPosition.y, _VortexPos.z);
+                float3 center = i.worldPosition - pos;
+                float gradientToCenter = length(center) / _VortexRadius;
+                gradientToCenter = 1-gradientToCenter;
 
-                float3 paintNormal = (i.worldNormal * _WorldNormalMultiplier) + (triplanarColor.xyz * _PaintNormalMultiplier);
+                float mask = step(0.0f, gradientToCenter);
+
+                float gradientMask = saturate(pow(1-gradientToCenter, _VortexMaskSharpness));
+                gradientToCenter = saturate(gradientToCenter);
+
+                float radius = _VortexRadius * 0.5f;
+                float2 uvUp = center.xz;
+                uvUp *= 0.25f;
+                uvUp /= radius * 2.0f;
+                uvUp.x += 0.5f;
+                uvUp.y += 0.5f;
+                uvUp -= 0.5f;
+                uvUp *= 2.0f;
+                
+
+                float2 polarUvUp = cartesianToPolar(uvUp, UNITY_TWO_PI);
+
+
+                fixed4 colorUp2 = fixed4(frac(polarUvUp), 0, 1);
+                colorUp2 = tex2D(_PaintTexture, (polarUvUp * _PolarUVSize) + (_Time.y * _VortexSpeed));
+
+
+                fixed4 triplanarColor = getSeamlessTriplanarColor(triplanarWorldPosition, i.worldNormal, 
+                                        _PaintTexture, _PaintTexture, _PaintTexture, _TriplanarBlendFalloff);
+
+
+                triplanarColor = lerp(colorUp2, triplanarColor, gradientMask);
+
+//return triplanarColor;
+
+
+                float3 defaultWorldNormal = i.worldNormal;
+                float3 paintNormal = (defaultWorldNormal * _WorldNormalMultiplier) + (triplanarColor.xyz * _PaintNormalMultiplier);
                 float3 steppedWorldNormal = normalize((floor(paintNormal * _PaintNormalSteps) / _PaintNormalSteps) );
                 
                 float3 worldNormal = steppedWorldNormal;
