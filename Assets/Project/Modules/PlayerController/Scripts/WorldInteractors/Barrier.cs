@@ -17,10 +17,13 @@ public class Barrier : AWorldInteractor
     [Header("REFERNCES")]
     [SerializeField] private Transform _barrierTransform;
     [SerializeField] private Collider _collider;
-    [SerializeField] private bool _startActivated = false;    
+    [SerializeField] private bool _startActivated = false;
+
+    private bool _isActivated = false;
 
     protected override void AwakeInit()
     {
+        _isActivated = _startActivated;
         if (_startActivated)
         {
             SetStateInstantly(_activatedStateSpot);
@@ -37,12 +40,14 @@ public class Barrier : AWorldInteractor
     {
         SetState(_activatedStateSpot, _activateDuration);
         SetCollisionEnabled(true);
+        _isActivated = true;
     }
 
     protected override void EnterDeactivatedState()
     {
         SetState(_deactivatedStateSpot, _deactivateDuration);
         SetCollisionEnabledDelayed(false, _deactivateDuration).Forget();
+        _isActivated = false;
     }
 
 
@@ -68,4 +73,5 @@ public class Barrier : AWorldInteractor
         await UniTask.Delay((int)(delay * 1000));
         _collider.enabled = isEnabled;
     }
+
 }
