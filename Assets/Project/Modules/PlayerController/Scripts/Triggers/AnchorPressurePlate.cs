@@ -35,7 +35,7 @@ public class AnchorPressurePlate : MonoBehaviour, IDamageHitTarget
         return false;
     }
 
-    public DamageHitResult TakeHit(DamageHit damageHit)
+    public DamageHitResult TakeHitDamage(DamageHit damageHit)
     {
         OnTakeAnchorHit();
 

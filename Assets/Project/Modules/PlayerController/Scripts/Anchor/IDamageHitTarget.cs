@@ -4,7 +4,7 @@ using UnityEngine;
 
 public interface IDamageHitTarget
 {
-    public DamageHitResult TakeHit(DamageHit anchorHit);
+    public DamageHitResult TakeHitDamage(DamageHit damageHit);
     public bool CanBeDamaged(DamageHit damageHit);
     public bool IsDead();
 }
