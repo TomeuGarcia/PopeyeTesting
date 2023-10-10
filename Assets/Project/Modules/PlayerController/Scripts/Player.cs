@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public class Player : MonoBehaviour, IHealthTarget
+public class Player : MonoBehaviour, IHealthTarget, IDamageHitTarget
 {
     [Header("ANCHOR")]
     [SerializeField] private Anchor _anchor;
@@ -43,24 +43,14 @@ public class Player : MonoBehaviour, IHealthTarget
         {
             DamageHit damageHit = new DamageHit(10.0f, collision.transform.position, 18.0f, 0.0f);
             
-            if (CanBeDamaged())
+            if (CanBeDamaged(damageHit))
             {
-                TakeDamage(damageHit);
+                TakeHitDamage(damageHit);
             }
         }
     }
 
-    private bool CanBeDamaged()
-    {
-        return !_healthSystem.IsDead() && !_healthSystem.IsInvulnerable;
-    }
-    
-    public bool CanBeHealed()
-    {
-        return !_healthSystem.IsDead();
-    }
-
-    private void TakeDamage(DamageHit damageHit)
+    public DamageHitResult TakeHitDamage(DamageHit damageHit)
     {
         Vector3 pushDirection = transform.position - damageHit.Position;
         pushDirection.y = 0;
@@ -68,7 +58,7 @@ public class Player : MonoBehaviour, IHealthTarget
         Vector3 pushForce = pushDirection * damageHit.KnockbackForce;
         _playerController.GetPushed(pushForce);
 
-        _healthSystem.TakeDamage(damageHit.Damage);
+        float receivedDamage = _healthSystem.TakeDamage(damageHit.Damage);
         if (_healthSystem.IsDead())
         {
             Die();
@@ -76,7 +66,26 @@ public class Player : MonoBehaviour, IHealthTarget
 
         SetInvulnerableForDuration(1.5f);
         TakeDamageAnimation();
+
+        return new DamageHitResult(receivedDamage);
     }
+
+    public bool CanBeDamaged(DamageHit damageHit)
+    {
+        return !_healthSystem.IsDead() && !_healthSystem.IsInvulnerable;
+    }
+
+    public bool IsDead()
+    {
+        return _healthSystem.IsDead();
+    }
+
+    
+    public bool CanBeHealed()
+    {
+        return !IsDead();
+    }
+
 
     private async void TakeDamageAnimation()
     {
@@ -141,4 +150,6 @@ public class Player : MonoBehaviour, IHealthTarget
         _animator.SetTrigger("Attack");
         await Task.Delay((int)((0.5f)*1000));
     }
+
+
 }

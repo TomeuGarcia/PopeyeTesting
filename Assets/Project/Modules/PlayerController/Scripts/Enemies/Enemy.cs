@@ -72,7 +72,7 @@ public class Enemy : MonoBehaviour, IDamageHitTarget, IMovementInputHandler
     }
 
 
-    public DamageHitResult TakeHit(DamageHit damageHit)
+    public DamageHitResult TakeHitDamage(DamageHit damageHit)
     {
         TakeKnockback(damageHit.Position, damageHit.KnockbackForce);        
 

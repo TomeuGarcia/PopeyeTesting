@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class DamageHitResult
 {
+
     private float _receivedDamage;
     public float ReceivedDamage
     {

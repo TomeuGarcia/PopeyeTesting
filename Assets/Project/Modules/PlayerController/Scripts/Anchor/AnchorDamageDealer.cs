@@ -195,17 +195,10 @@ public class AnchorDamageDealer : MonoBehaviour
 
     private bool TryDealDamage(GameObject hitObject, DamageHit damageHit, bool restoresStamina)
     {
-        if (!hitObject.TryGetComponent<IDamageHitTarget>(out IDamageHitTarget hitTarget))
+        if (!CombatManager.Instance.TryDealDamage(hitObject, damageHit, out DamageHitResult damageHitResult))
         {
             return false;
         }
-
-        if (!hitTarget.CanBeDamaged(damageHit))
-        {
-            return false;
-        }
-
-        DamageHitResult damageHitResult = hitTarget.TakeHit(damageHit);
         
         if (damageHitResult.ReceivedDamage > 0 && restoresStamina)
         {
