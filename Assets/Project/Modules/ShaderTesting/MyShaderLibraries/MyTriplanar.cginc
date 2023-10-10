@@ -65,6 +65,19 @@ fixed4 getSeamlessTriplanarColor(float3 worldPosition, half3 worldNormal, sample
     return color_up + color_right + color_forward;
 }
 
+fixed4 getSeamlessTriplanarColor_sampled(half3 worldNormal, fixed4 colorUp, fixed4 colorRight, fixed4 colorForward, fixed falloff)
+{                
+    half3 absoluteWorldNormal = pow(abs(worldNormal), falloff);
+    half3 mappedNormal = dot(absoluteWorldNormal, half3(1, 1, 1));
+    half3 weights = absoluteWorldNormal / mappedNormal;               
+    
+    colorUp *= weights.y;
+    colorRight *= weights.x;
+    colorForward *= weights.z;
+
+    return colorUp + colorRight + colorForward;
+}
+
 
 
 half3 filterNormal(sampler2D heightMap, float4 uv, float texelSize, fixed texelDist, fixed maxHeight)

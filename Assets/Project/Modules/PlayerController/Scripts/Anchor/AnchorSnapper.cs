@@ -8,6 +8,8 @@ public class AnchorSnapper : MonoBehaviour
     [SerializeField] private LayerMask _snapTargetLayerMask;
     [SerializeField, Range(0.0f, 100.0f)] private float _snapTargetProbeDistance = 50.0f;
 
+    private int _lastPathIndex;
+
 
     public bool HasSnapTarget(Vector3[] trajectoryPath)
     {
@@ -25,6 +27,7 @@ public class AnchorSnapper : MonoBehaviour
                 {
                     if (_currentSnapTarget.CanSnapFromPosition(raycastHit.point))
                     {
+                        _lastPathIndex = i + 1;
                         return true;
                     }
                 }
@@ -68,13 +71,18 @@ public class AnchorSnapper : MonoBehaviour
     public void CorrectTrajectoryPath(Vector3[] trajectoryPath)
     {
         Vector3 snapPosition = _currentSnapTarget.SnapPosition;
-        float step = 1.0f / (trajectoryPath.Length - 1);
+        float step = 1.0f / _lastPathIndex;
         float t = 0.0f;
 
-        for (int i = 0; i < trajectoryPath.Length; ++i)
+        for (int i = 0; i < _lastPathIndex; ++i)
         {
             trajectoryPath[i] = Vector3.Lerp(trajectoryPath[i], snapPosition, t);
             t += step;
+        }
+        
+        for (int i = _lastPathIndex; i < trajectoryPath.Length; ++i)
+        {
+            trajectoryPath[i] = snapPosition;
         }
     }
 

@@ -9,6 +9,9 @@ public abstract class AWorldInteractor : MonoBehaviour
     private int _currentActivationInputsCount = 0;
     public int ActivationInputsCount => _activationInputsCount;
 
+    public delegate void AWorldInteractorEvent();
+    public AWorldInteractorEvent OnEnterActivated;
+
 
     private void Awake()
     {
@@ -21,6 +24,7 @@ public abstract class AWorldInteractor : MonoBehaviour
         if (++_currentActivationInputsCount == _activationInputsCount)
         {
             EnterActivatedState();
+            OnEnterActivated?.Invoke();
         }        
     }
     
@@ -32,10 +36,16 @@ public abstract class AWorldInteractor : MonoBehaviour
         }
     }
 
+    public bool IsActivated()
+    {
+        return _currentActivationInputsCount == _activationInputsCount;
+    }
+
 
     protected abstract void AwakeInit();
     protected abstract void EnterActivatedState();
     protected abstract void EnterDeactivatedState();
+    
 
 
 }

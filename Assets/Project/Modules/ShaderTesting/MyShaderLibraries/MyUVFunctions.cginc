@@ -28,3 +28,4 @@ float2 polarToCartesian(float2 polarCoords, float pi2)
     sincos(polarCoords.x * pi2, cartesianCoords.y, cartesianCoords.x);
     return cartesianCoords * polarCoords.y;
 }
+
