@@ -48,6 +48,8 @@ public class EnemyDashingState : IEnemyState
     {
         _enemy.SetMaxMoveSpeed(_defaultMaxMoveSpeed);
         _enemy.SetCanRotate(true);        
+
+        _enemy.DisableDealingContactDamage();
     }
 
     public override void Interrupt()
@@ -89,11 +91,12 @@ public class EnemyDashingState : IEnemyState
         ComputeDashEndPosition();
         
         _enemy.SetCanRotate(false);
-        _enemy.transform.DOMove(_dashStartPosition, _dashExecutionDuration)
+        _enemy.transform.DOMove(_dashStartPosition, _dashPrepareDuration)
             .SetEase(Ease.InOutQuart);
         await Task.Delay((int)(_dashPrepareDuration * 1000), _dashCancellationToken);
 
         if (_finishedDashing) return;
+        _enemy.EnableDealingContactDamage();
 
         _enemy.transform.DOMove(_dashEndPosition, _dashExecutionDuration)
             .SetEase(Ease.OutQuart);

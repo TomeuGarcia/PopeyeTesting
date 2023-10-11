@@ -35,6 +35,11 @@ public class AnchorPressurePlate : MonoBehaviour, IDamageHitTarget
         return false;
     }
 
+    public DamageHitTargetType GetDamageHitTargetType()
+    {
+        return DamageHitTargetType.Interactable;
+    }
+
     public DamageHitResult TakeHitDamage(DamageHit damageHit)
     {
         OnTakeAnchorHit();

@@ -7,6 +7,22 @@ public class CombatManager : MonoBehaviour
     public static CombatManager Instance { get; private set; }
 
 
+    private DamageHitTargetType _damageOnlyPlayerPreset;
+    private DamageHitTargetType _damageOnlyEnemiesPreset;
+    private DamageHitTargetType _damageEnemiesAndDestructiblesPreset;
+    private DamageHitTargetType _damageEnemiesDestructiblesAndInteractablesPreset;
+    private DamageHitTargetType _damagePlayerAndEnemiesPreset;
+    
+    public DamageHitTargetType DamageOnlyPlayerPreset => _damageOnlyPlayerPreset;
+    public DamageHitTargetType DamageOnlyEnemiesPreset => _damageOnlyEnemiesPreset;
+    public DamageHitTargetType DamageEnemiesAndDestructiblesPreset => _damageEnemiesAndDestructiblesPreset;
+    public DamageHitTargetType DamageEnemiesDestructiblesAndInteractablesPreset => _damageEnemiesDestructiblesAndInteractablesPreset;
+    public DamageHitTargetType DamagePlayerAndEnemiesPreset => _damagePlayerAndEnemiesPreset;
+
+
+
+
+
     private void Awake()
     {
         if (Instance != null)
@@ -18,6 +34,26 @@ public class CombatManager : MonoBehaviour
         transform.parent = null;
         DontDestroyOnLoad(gameObject);
         Instance = this;
+
+        AwakeInit();
+    }
+
+
+    private void AwakeInit()
+    {
+        DamageHitTargetTypeUtilities.AddType(ref _damageOnlyPlayerPreset, DamageHitTargetType.Player);
+
+        DamageHitTargetTypeUtilities.AddType(ref _damageOnlyEnemiesPreset, DamageHitTargetType.Enemy);
+
+        DamageHitTargetTypeUtilities.AddType(ref _damageEnemiesAndDestructiblesPreset, DamageHitTargetType.Enemy);
+        DamageHitTargetTypeUtilities.AddType(ref _damageEnemiesAndDestructiblesPreset, DamageHitTargetType.Destructible);
+        
+        DamageHitTargetTypeUtilities.AddType(ref _damageEnemiesDestructiblesAndInteractablesPreset, DamageHitTargetType.Enemy);
+        DamageHitTargetTypeUtilities.AddType(ref _damageEnemiesDestructiblesAndInteractablesPreset, DamageHitTargetType.Destructible);
+        DamageHitTargetTypeUtilities.AddType(ref _damageEnemiesDestructiblesAndInteractablesPreset, DamageHitTargetType.Interactable);
+
+        DamageHitTargetTypeUtilities.AddType(ref _damagePlayerAndEnemiesPreset, DamageHitTargetType.Player);
+        DamageHitTargetTypeUtilities.AddType(ref _damagePlayerAndEnemiesPreset, DamageHitTargetType.Enemy);
     }
 
 
@@ -30,6 +66,12 @@ public class CombatManager : MonoBehaviour
             return false;
         }
 
+        if (DamageHitIgnoresDamageTarget(damageHit, hitTarget))
+        {
+            return false;
+        }
+
+
         if (!hitTarget.CanBeDamaged(damageHit))
         {
             return false;
@@ -37,6 +79,15 @@ public class CombatManager : MonoBehaviour
 
         damageHitResult = hitTarget.TakeHitDamage(damageHit);
         return true;
+    }
+
+
+    private bool DamageHitIgnoresDamageTarget(DamageHit damageHit, IDamageHitTarget hitTarget)
+    {
+        DamageHitTargetType damageHitTypeMask = damageHit.DamageHitTargetTypeMask;
+        DamageHitTargetType damageTargetType = hitTarget.GetDamageHitTargetType();
+
+        return !damageHitTypeMask.HasFlag(damageTargetType);
     }
 
 

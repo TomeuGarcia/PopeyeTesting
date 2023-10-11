@@ -1184,6 +1184,9 @@ MonoBehaviour:
   _maxMoveSpeed: 16
   _knockbackEffectiveness: 1
   _maxHealth: 25
+  _contactHitDamageAmount: 10
+  _contactHitKnockbackForce: 18
+  _contactHitStunDuration: 0
 --- !u!114 &5980008594002771087
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1197,9 +1200,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _chaseStartDistance: 10
-  _loseInterestDistance: 15
+  _loseInterestDistance: 20
   _attackStartDistance: 3
   _dashDistance: 5
+  _minIdleDuration: 0.5
   _dashPrepareDuration: 0.5
   _dashExecutionDuration: 0.5
   _dashRecoverDuration: 0.5
