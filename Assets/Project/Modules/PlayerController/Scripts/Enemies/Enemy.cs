@@ -10,7 +10,7 @@ public class Enemy : MonoBehaviour, IDamageHitTarget, IMovementInputHandler
     [SerializeField] private IEnemyStateMachine _stateMachine;
     [SerializeField] private PlayerController _enemyController;
     [SerializeField] private Rigidbody _rigidbody;
-    private Transform _attackTarget;
+    [SerializeField] private Transform _attackTarget;
 
     [Header("MOVE SPEEDS")]
     [SerializeField, Range(0.0f, 100.0f)] private float _maxMoveSpeed = 16.0f;
@@ -22,6 +22,14 @@ public class Enemy : MonoBehaviour, IDamageHitTarget, IMovementInputHandler
     [Header("HEALTH")]
     [SerializeField, Range(0.0f, 100.0f)] private float _maxHealth = 50.0f;
     private HealthSystem _healthSystem;
+
+
+    [Header("CONTACT DAMAGE")]
+    [SerializeField, Range(0.0f, 30.0f)] private float _contactHitDamageAmount = 10.0f;
+    [SerializeField, Range(0.0f, 30.0f)] private float _contactHitKnockbackForce = 18.0f;
+    [SerializeField, Range(0.0f, 30.0f)] private float _contactHitStunDuration = 0.0f;
+    private DamageHit _contactDamageHit;
+    private bool _canDealContactDamage;
 
 
     public Vector3 Position => transform.position;
@@ -40,6 +48,15 @@ public class Enemy : MonoBehaviour, IDamageHitTarget, IMovementInputHandler
     public EnemyEvent OnDeathAnimationFinished;
 
 
+    private bool _alreadyInitialized = false;
+    private void Start()
+    {
+        if (_alreadyInitialized) return;
+
+        AwakeInit(_attackTarget, true);
+        SetRespawnPosition(Position);
+    }
+
     public void AwakeInit(Transform attackTarget, bool respawnsAfterDeath)
     {
         _attackTarget = attackTarget;
@@ -56,6 +73,14 @@ public class Enemy : MonoBehaviour, IDamageHitTarget, IMovementInputHandler
         _healthSystem = new HealthSystem(_maxHealth);
 
         _stateMachine.AwakeInit(this);
+
+
+        _contactDamageHit = new DamageHit(CombatManager.Instance.DamageOnlyPlayerPreset,
+            _contactHitDamageAmount, Position, _contactHitKnockbackForce, _contactHitStunDuration);
+
+        DisableDealingContactDamage();
+
+        _alreadyInitialized = true;
     }
 
     private void Update()
@@ -66,11 +91,37 @@ public class Enemy : MonoBehaviour, IDamageHitTarget, IMovementInputHandler
         }        
     }
 
+    private void OnTriggerEnter(Collider other)
+    {
+        if (_canDealContactDamage)
+        {
+            _contactDamageHit.Position = Position;
+            CombatManager.Instance.TryDealDamage(other.gameObject, _contactDamageHit, out DamageHitResult damageHitResult);
+        }        
+    }
+
+
     public void SetRespawnPosition(Vector3 respawnPosition)
     {
         _respawnPosition = respawnPosition;
     }
 
+
+    public void EnableDealingContactDamage()
+    {
+        _canDealContactDamage = true;
+    }
+    public void DisableDealingContactDamage()
+    {
+        _canDealContactDamage = false;
+    }
+
+
+
+    public DamageHitTargetType GetDamageHitTargetType()
+    {
+        return DamageHitTargetType.Enemy;
+    }
 
     public DamageHitResult TakeHitDamage(DamageHit damageHit)
     {

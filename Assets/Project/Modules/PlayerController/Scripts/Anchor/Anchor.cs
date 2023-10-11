@@ -136,9 +136,8 @@ public class Anchor : MonoBehaviour
             _anchorDamageDealer.DealThrowHitDamage(otherCollider.gameObject, Position);
         }       
         else if (_isBeingPulled)
-        {
-            
-            _anchorDamageDealer.DealPullBackDamage(otherCollider.gameObject, _ownerTransform.position);            
+        {            
+            //_anchorDamageDealer.DealPullBackDamage(otherCollider.gameObject, _ownerTransform.position);            
         }
     }
 

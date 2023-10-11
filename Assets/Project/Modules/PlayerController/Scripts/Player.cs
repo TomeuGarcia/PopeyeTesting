@@ -37,17 +37,11 @@ public class Player : MonoBehaviour, IHealthTarget, IDamageHitTarget
     }
 
 
-    private void OnCollisionEnter(Collision collision)
+
+
+    public DamageHitTargetType GetDamageHitTargetType()
     {
-        if (collision.gameObject.CompareTag("Enemy"))
-        {
-            DamageHit damageHit = new DamageHit(10.0f, collision.transform.position, 18.0f, 0.0f);
-            
-            if (CanBeDamaged(damageHit))
-            {
-                TakeHitDamage(damageHit);
-            }
-        }
+        return DamageHitTargetType.Player;
     }
 
     public DamageHitResult TakeHitDamage(DamageHit damageHit)

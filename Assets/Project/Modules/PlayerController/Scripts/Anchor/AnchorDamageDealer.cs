@@ -53,18 +53,28 @@ public class AnchorDamageDealer : MonoBehaviour
     private DamageHit _pullBackHit;
     private DamageHit _explosionHit;
 
-
-
     private void Awake()
     {
         _meleeHitBoxNotifier.DisableCollider();
         _groundHitNotifier.DisableCollider();
+    }
 
-        _throwHit = new DamageHit(_throwHitDamage, Vector3.zero, _throwHitKnockbackForce, _throwHitStunDuration);
-        _groundHit = new DamageHit(_groundHitDamage, Vector3.zero, _groundHitKnockbackForce, _groundHitStunDuration);
-        _meleeHit = new DamageHit(_meleeHitDamage, Vector3.zero, _meleeHitKnockbackForce, _meleeHitStunDuration);
-        _pullBackHit = new DamageHit(_pullBackHitDamage, Vector3.zero, _pullBackHitKnockbackForce, _pullBackHitStunDuration);
-        _explosionHit = new DamageHit(_explosionHitDamage, Vector3.zero, _explosionHitKnockbackForce, _explosionHitStunDuration);
+    private void Start()
+    {
+        _throwHit = new DamageHit(CombatManager.Instance.DamageEnemiesAndDestructiblesPreset, 
+            _throwHitDamage, Vector3.zero, _throwHitKnockbackForce, _throwHitStunDuration);
+
+        _groundHit = new DamageHit(CombatManager.Instance.DamageEnemiesDestructiblesAndInteractablesPreset, 
+            _groundHitDamage, Vector3.zero, _groundHitKnockbackForce, _groundHitStunDuration);
+
+        _meleeHit = new DamageHit(CombatManager.Instance.DamageOnlyEnemiesPreset, 
+            _meleeHitDamage, Vector3.zero, _meleeHitKnockbackForce, _meleeHitStunDuration);
+
+        _pullBackHit = new DamageHit(CombatManager.Instance.DamageOnlyEnemiesPreset, 
+            _pullBackHitDamage, Vector3.zero, _pullBackHitKnockbackForce, _pullBackHitStunDuration);
+
+        _explosionHit = new DamageHit(CombatManager.Instance.DamageEnemiesAndDestructiblesPreset, 
+            _explosionHitDamage, Vector3.zero, _explosionHitKnockbackForce, _explosionHitStunDuration);
 
         OnValidate();
     }

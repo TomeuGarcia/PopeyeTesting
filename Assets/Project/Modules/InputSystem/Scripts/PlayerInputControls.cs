@@ -100,6 +100,15 @@ namespace InputSystem
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Melee2"",
+                    ""type"": ""Button"",
+                    ""id"": ""50e0aeb2-af92-4919-9906-2df9a52a4a3c"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -399,6 +408,28 @@ namespace InputSystem
                     ""action"": ""ExplosionAbility"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""90923d92-b9ab-4a5a-b66c-1a203d2a7cbf"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Melee2"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a6d0a05c-1ea1-4ab3-ade0-9b51bfb23682"",
+                    ""path"": ""<Gamepad>/buttonWest"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Melee2"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -442,6 +473,7 @@ namespace InputSystem
             m_Land_MeleeAttack = m_Land.FindAction("MeleeAttack", throwIfNotFound: true);
             m_Land_PullAttack = m_Land.FindAction("PullAttack", throwIfNotFound: true);
             m_Land_ExplosionAbility = m_Land.FindAction("ExplosionAbility", throwIfNotFound: true);
+            m_Land_Melee2 = m_Land.FindAction("Melee2", throwIfNotFound: true);
         }
 
         public void Dispose()
@@ -509,6 +541,7 @@ namespace InputSystem
         private readonly InputAction m_Land_MeleeAttack;
         private readonly InputAction m_Land_PullAttack;
         private readonly InputAction m_Land_ExplosionAbility;
+        private readonly InputAction m_Land_Melee2;
         public struct LandActions
         {
             private @PlayerInputControls m_Wrapper;
@@ -521,6 +554,7 @@ namespace InputSystem
             public InputAction @MeleeAttack => m_Wrapper.m_Land_MeleeAttack;
             public InputAction @PullAttack => m_Wrapper.m_Land_PullAttack;
             public InputAction @ExplosionAbility => m_Wrapper.m_Land_ExplosionAbility;
+            public InputAction @Melee2 => m_Wrapper.m_Land_Melee2;
             public InputActionMap Get() { return m_Wrapper.m_Land; }
             public void Enable() { Get().Enable(); }
             public void Disable() { Get().Disable(); }
@@ -554,6 +588,9 @@ namespace InputSystem
                     @ExplosionAbility.started -= m_Wrapper.m_LandActionsCallbackInterface.OnExplosionAbility;
                     @ExplosionAbility.performed -= m_Wrapper.m_LandActionsCallbackInterface.OnExplosionAbility;
                     @ExplosionAbility.canceled -= m_Wrapper.m_LandActionsCallbackInterface.OnExplosionAbility;
+                    @Melee2.started -= m_Wrapper.m_LandActionsCallbackInterface.OnMelee2;
+                    @Melee2.performed -= m_Wrapper.m_LandActionsCallbackInterface.OnMelee2;
+                    @Melee2.canceled -= m_Wrapper.m_LandActionsCallbackInterface.OnMelee2;
                 }
                 m_Wrapper.m_LandActionsCallbackInterface = instance;
                 if (instance != null)
@@ -582,6 +619,9 @@ namespace InputSystem
                     @ExplosionAbility.started += instance.OnExplosionAbility;
                     @ExplosionAbility.performed += instance.OnExplosionAbility;
                     @ExplosionAbility.canceled += instance.OnExplosionAbility;
+                    @Melee2.started += instance.OnMelee2;
+                    @Melee2.performed += instance.OnMelee2;
+                    @Melee2.canceled += instance.OnMelee2;
                 }
             }
         }
@@ -605,6 +645,7 @@ namespace InputSystem
             void OnMeleeAttack(InputAction.CallbackContext context);
             void OnPullAttack(InputAction.CallbackContext context);
             void OnExplosionAbility(InputAction.CallbackContext context);
+            void OnMelee2(InputAction.CallbackContext context);
         }
     }
 }

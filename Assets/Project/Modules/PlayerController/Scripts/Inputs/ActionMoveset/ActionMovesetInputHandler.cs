@@ -11,6 +11,7 @@ public class ActionMovesetInputHandler
     private UnityEngine.InputSystem.InputAction _throw;
     private UnityEngine.InputSystem.InputAction _grab;
     private UnityEngine.InputSystem.InputAction _meleeAttack;
+    private UnityEngine.InputSystem.InputAction _melee2;
     private UnityEngine.InputSystem.InputAction _move;
     private UnityEngine.InputSystem.InputAction _pullAttack;
     private UnityEngine.InputSystem.InputAction _explosionAbility;
@@ -26,6 +27,7 @@ public class ActionMovesetInputHandler
         _throw = _playerInputControls.Land.Throw;
         _grab = _playerInputControls.Land.Grab;
         _meleeAttack = _playerInputControls.Land.MeleeAttack;
+        _melee2 = _playerInputControls.Land.Melee2;
         _move = _playerInputControls.Land.Move;
         _pullAttack = _playerInputControls.Land.PullAttack;
         _explosionAbility = _playerInputControls.Land.ExplosionAbility;
@@ -82,6 +84,11 @@ public class ActionMovesetInputHandler
     public bool IsMeleeAttack_Pressed()
     {
         return _meleeAttack.WasPressedThisFrame();
+    }
+    
+    public bool IsMelee2_Pressed()
+    {
+        return _melee2.WasPressedThisFrame();
     }
 
 

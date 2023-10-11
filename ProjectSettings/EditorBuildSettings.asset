@@ -6,6 +6,6 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Project/Modules/PlayerController/Scenes/OrbitingCamera.unity
-    guid: 278dcbbde337a2e48b63502ce89e38ef
+    path: Assets/Project/Modules/PlayerController/Scenes/WorldInteractions.unity
+    guid: 3721a01faa89a254bb87da191f5c5efa
   m_configObjects: {}

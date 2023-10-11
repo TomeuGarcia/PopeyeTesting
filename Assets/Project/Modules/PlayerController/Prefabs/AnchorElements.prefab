@@ -229,7 +229,7 @@ MonoBehaviour:
   _anchorMesh: {fileID: 9062464612324071504}
   _ownerBinderLine: {fileID: 9062464612382248687}
   _healAmount: 25
-  _healDuration: 1
+  _healDuration: 1.5
   _chargedCurve:
     serializedVersion: 2
     m_Curve:

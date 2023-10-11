@@ -66,12 +66,18 @@ public class Barrier : AWorldInteractor
 
     private void SetCollisionEnabled(bool isEnabled)
     {
-        _collider.enabled = isEnabled;
+        if (_collider != null)
+        {
+            _collider.enabled = isEnabled;
+        }
     }
     private async UniTaskVoid SetCollisionEnabledDelayed(bool isEnabled, float delay)
     {
         await UniTask.Delay((int)(delay * 1000));
-        _collider.enabled = isEnabled;
+        if (_collider != null)
+        {
+            _collider.enabled = isEnabled;
+        }
     }
 
 }
