@@ -73,7 +73,7 @@ public class WithAnchorState : IPlayerState
             return true;
         }
 
-        if (_movesetInputHandler.IsPullAttack_Pressed()) // Melee attack
+        if (_movesetInputHandler.IsMelee2_Pressed())
         {
             MeleeAttack();
         }

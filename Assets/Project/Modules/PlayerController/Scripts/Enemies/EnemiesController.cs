@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class EnemiesController : MonoBehaviour
 {
+    [SerializeField] private bool _initEnemies = true;
     [SerializeField] private bool _enemiesRespawn = true;
 
     [Header("PARENTS")]
@@ -19,6 +20,8 @@ public class EnemiesController : MonoBehaviour
 
     private void Awake()
     {
+        if (!_initEnemies) return;
+
         int numberOfBigEnemies = BigEnemies.transform.childCount;
         int numberOfMediumEnemies = MediumEnemies.transform.childCount;
         int numberOfSmallEnemies = SmallEnemies.transform.childCount;

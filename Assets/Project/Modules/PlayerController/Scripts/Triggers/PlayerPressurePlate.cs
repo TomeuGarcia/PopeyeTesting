@@ -65,7 +65,7 @@ public class PlayerPressurePlate : MonoBehaviour
     protected void PlayUntriggerAnimation()
     {
         _buttonMesh.material = _notTriggeredMaterial;
-        _buttonTransform.DOLocalMove(Vector3.zero, 0.2f);
+        _buttonTransform.DOLocalMove(Vector3.up * 0.05f, 0.2f);
     }
 
 

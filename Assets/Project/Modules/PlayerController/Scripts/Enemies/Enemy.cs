@@ -10,7 +10,7 @@ public class Enemy : MonoBehaviour, IDamageHitTarget, IMovementInputHandler
     [SerializeField] private IEnemyStateMachine _stateMachine;
     [SerializeField] private PlayerController _enemyController;
     [SerializeField] private Rigidbody _rigidbody;
-    private Transform _attackTarget;
+    [SerializeField] private Transform _attackTarget;
 
     [Header("MOVE SPEEDS")]
     [SerializeField, Range(0.0f, 100.0f)] private float _maxMoveSpeed = 16.0f;
@@ -48,6 +48,15 @@ public class Enemy : MonoBehaviour, IDamageHitTarget, IMovementInputHandler
     public EnemyEvent OnDeathAnimationFinished;
 
 
+    private bool _alreadyInitialized = false;
+    private void Start()
+    {
+        if (_alreadyInitialized) return;
+
+        AwakeInit(_attackTarget, true);
+        SetRespawnPosition(Position);
+    }
+
     public void AwakeInit(Transform attackTarget, bool respawnsAfterDeath)
     {
         _attackTarget = attackTarget;
@@ -70,6 +79,8 @@ public class Enemy : MonoBehaviour, IDamageHitTarget, IMovementInputHandler
             _contactHitDamageAmount, Position, _contactHitKnockbackForce, _contactHitStunDuration);
 
         DisableDealingContactDamage();
+
+        _alreadyInitialized = true;
     }
 
     private void Update()
