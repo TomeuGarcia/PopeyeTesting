@@ -29,6 +29,7 @@ public class PlayerStateMachine : MonoBehaviour
     {
         _movesetInputHandler = new ActionMovesetInputHandler();
 
+        Spawn_PlayerState spawnState = new Spawn_PlayerState(_player, _anchor);
         WithAnchorState withAnchorState = new WithAnchorState(_player, _anchor, _withAnchorMoveSpeed, _movesetInputHandler);
         WithoutAnchorState withoutAnchorState = new WithoutAnchorState(_player, _anchor, _withoutAnchorMoveSpeed, _pullingMoveSpeed, _movesetInputHandler);
         AimingThrowAnchorState aimingThrowAnchorState = new AimingThrowAnchorState(_player, _anchor, _aimingMoveSpeed, _movesetInputHandler, _maxAimDuration);
@@ -38,6 +39,7 @@ public class PlayerStateMachine : MonoBehaviour
 
         _states = new Dictionary<IPlayerState.States, IPlayerState>()
         {
+            { IPlayerState.States.Spawn, spawnState },
             { IPlayerState.States.WithAnchor, withAnchorState },
             { IPlayerState.States.WithoutAnchor, withoutAnchorState },
             { IPlayerState.States.AimingThrowAnchor, aimingThrowAnchorState },
@@ -58,8 +60,22 @@ public class PlayerStateMachine : MonoBehaviour
             _currentState = _states[_currentState.NextState];
             _currentState.Enter();
         }
+
+
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            ResetStates();
+        }
+
     }
 
+
+    private void ResetStates()
+    {
+        _currentState.Exit();
+        _currentState = _states[IPlayerState.States.Spawn];
+        _currentState.Enter();
+    }
 
 
 }

@@ -1,3 +1,4 @@
+using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -24,6 +25,7 @@ public class Player : MonoBehaviour, IHealthTarget, IDamageHitTarget
 
     public PlayerController PlayerController => _playerController;
 
+    [HideInInspector] public Vector3 _respawnPosition;
 
     private void Awake()
     {
@@ -34,6 +36,8 @@ public class Player : MonoBehaviour, IHealthTarget, IDamageHitTarget
         _defaultMeshColor = _meshMaterial.GetColor("_Color");
 
         _anchorHealthDrainer.Init(this);
+
+        _respawnPosition = transform.position;
     }
 
 
@@ -143,6 +147,15 @@ public class Player : MonoBehaviour, IHealthTarget, IDamageHitTarget
         //play anim
         _animator.SetTrigger("Attack");
         await Task.Delay((int)((0.5f)*1000));
+    }
+
+
+    public void Respawn()
+    {
+        _playerController.ResetRigidbody();
+
+        transform.DOKill();
+        transform.position = _respawnPosition;
     }
 
 

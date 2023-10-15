@@ -33,7 +33,7 @@ Material:
     - _AmbientStrength: 0.024
     - _PaintNormalMultiplier: 0.4
     - _PaintNormalSteps: 4.02
-    - _SpecularPow: 0.031
+    - _SpecularPow: 0.01
     - _SpecularStrength: 1.05
     - _Step: 4
     - _TriplanarBlendFalloff: 8

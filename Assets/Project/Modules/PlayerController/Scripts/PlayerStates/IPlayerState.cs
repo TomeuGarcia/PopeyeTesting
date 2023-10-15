@@ -7,6 +7,7 @@ public abstract class IPlayerState
     public enum States
     {
         None,
+        Spawn,
         WithAnchor,
         WithoutAnchor,
         AimingThrowAnchor,

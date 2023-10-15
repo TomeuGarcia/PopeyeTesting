@@ -87,10 +87,7 @@ public class Anchor : MonoBehaviour
 
     private void Awake()
     {
-        InstantReturnToOwner();
-        HideTrajectory();
-
-        SetStill();
+        RespawnReset();
 
         _trajectoryPathPoints = new Vector3[_maxForceTrajectory.positionCount];
 
@@ -139,6 +136,20 @@ public class Anchor : MonoBehaviour
         {            
             //_anchorDamageDealer.DealPullBackDamage(otherCollider.gameObject, _ownerTransform.position);            
         }
+    }
+
+    public void RespawnReset()
+    {
+        _rigidbody.velocity = Vector3.zero;
+        _rigidbody.angularVelocity = Vector3.zero;
+
+        _springJoint.axis = Vector3.Scale(_springJoint.axis, Vector3.one);
+        _rigidbody.DOKill();
+
+        InstantReturnToOwner();
+        HideTrajectory();
+
+        SetStill();
     }
 
     public void InstantReturnToOwner()
