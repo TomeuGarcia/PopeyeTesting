@@ -36,6 +36,8 @@ public class PlayerStateMachine : MonoBehaviour
         ThrowingAnchorState throwingAnchorState = new ThrowingAnchorState(_player, _anchor, _withoutAnchorMoveSpeed, _movesetInputHandler);
         PlacedAnchorPullAttackState placedAnchorPullAttackState = new PlacedAnchorPullAttackState(_player, _anchor, _pullAttackMoveSpeed, _movesetInputHandler);
 
+        SpinAttack_PlayerState spinAttackState = new SpinAttack_PlayerState(_player, _anchor, _movesetInputHandler, _withoutAnchorMoveSpeed);
+
 
         _states = new Dictionary<IPlayerState.States, IPlayerState>()
         {
@@ -44,7 +46,8 @@ public class PlayerStateMachine : MonoBehaviour
             { IPlayerState.States.WithoutAnchor, withoutAnchorState },
             { IPlayerState.States.AimingThrowAnchor, aimingThrowAnchorState },
             { IPlayerState.States.ThrowingAnchor, throwingAnchorState },
-            { IPlayerState.States.PlacedAnchorPullAttack, placedAnchorPullAttackState }
+            { IPlayerState.States.PlacedAnchorPullAttack, placedAnchorPullAttackState },
+            { IPlayerState.States.SpinAttack, spinAttackState }
         };
 
         _currentState = _states[IPlayerState.States.WithAnchor];

@@ -63,6 +63,8 @@ public class Anchor : MonoBehaviour
     public Vector3 Position => _anchorTransform.position;
     private Vector3 _throwStartPosition;
 
+    public Transform Transform => _anchorTransform;
+
     private bool _canMeleeAttack = true;
     public bool CanMeleeAttack
     {
@@ -70,6 +72,10 @@ public class Anchor : MonoBehaviour
         set { _canMeleeAttack = value; }
     }
 
+
+    public float MinDistanceFromOwner => _springJoint.minDistance;
+    public float MaxDistanceFromOwner => _springJoint.maxDistance;
+    public float CurrentDistanceFromOwner => Vector3.Distance(Position, _ownerTransform.position);
 
 
 
@@ -154,7 +160,7 @@ public class Anchor : MonoBehaviour
 
     public void InstantReturnToOwner()
     {
-        _anchorTransform.SetParent(_ownerTransform);
+        ParentToOwner();
         _anchorTransform.localPosition = _grabbedPosition;
 
         _currentState = AnchorStates.WithOwner;
@@ -164,10 +170,19 @@ public class Anchor : MonoBehaviour
     {
         SetStill();
         _groundedAnchor.gameObject.SetActive(false);
-        _anchorTransform.SetParent(_ownerTransform);
+        ParentToOwner();
         SetGrabbedPosition();
 
         _currentState = AnchorStates.WithOwner;
+    }
+
+    public void ParentToOwner()
+    {
+        _anchorTransform.SetParent(_ownerTransform);
+    }
+    public void UnparentFromOwner()
+    {
+        _anchorTransform.SetParent(null);
     }
 
     public void GetPulledTowardsOwner()
@@ -181,7 +196,7 @@ public class Anchor : MonoBehaviour
         CorrectTrajectory(strength01, lookDirection);
 
         SetAimingPositionInstantly();
-        _anchorTransform.SetParent(null);
+        UnparentFromOwner();
 
         LaunchAnchor();
 
@@ -335,7 +350,7 @@ public class Anchor : MonoBehaviour
         SetStill();
     }
 
-    private void SetStill()
+    public void SetStill()
     {
         _rigidbody.velocity = Vector3.zero;
         _rigidbody.angularVelocity = Vector3.zero;

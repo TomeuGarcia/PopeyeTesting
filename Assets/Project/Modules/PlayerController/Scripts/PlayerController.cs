@@ -280,6 +280,12 @@ public class PlayerController : MonoBehaviour
         _lookTransform.localRotation = Quaternion.RotateTowards(_lookTransform.localRotation, goalRotation, Time.deltaTime * _lookSpeed);
     }
 
+    public void LookTowardsPosition(Vector3 lookPosition)
+    {
+        Vector3 lookDirection = ProjectOnPlane(lookPosition - _rigidbody.position, Vector3.up).normalized;
+
+        _lookTransform.localRotation = Quaternion.LookRotation(lookDirection, Vector3.up);
+    }
 
 
     public void GetPushed(Vector3 pushForce)

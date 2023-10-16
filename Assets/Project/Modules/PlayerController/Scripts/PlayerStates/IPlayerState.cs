@@ -12,7 +12,8 @@ public abstract class IPlayerState
         WithoutAnchor,
         AimingThrowAnchor,
         ThrowingAnchor,
-        PlacedAnchorPullAttack
+        PlacedAnchorPullAttack,
+        SpinAttack
     }
 
     protected States _nextState;
