@@ -1,4 +1,5 @@
 using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks.CompilerServices;
 using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,13 +14,20 @@ public class SpinAttack_PlayerState : IPlayerState
     private float _withoutAnchorMoveSpeed;
     private float _deltaTime;
 
+    private LayerMask _obstaclesLayerMask;
 
-    public SpinAttack_PlayerState(Player player, Anchor anchor, ActionMovesetInputHandler movesetInputHandler, float withoutAnchorMoveSpeed)
+    private bool _finishedPerformingSpinAttack;
+    private bool _finishedSpinAttackDuration;
+
+
+    public SpinAttack_PlayerState(Player player, Anchor anchor, ActionMovesetInputHandler movesetInputHandler, float withoutAnchorMoveSpeed,
+        LayerMask obstaclesLayerMask)
     {
         _player = player;
         _anchor = anchor;
         _movesetInputHandler = movesetInputHandler;
         _withoutAnchorMoveSpeed = withoutAnchorMoveSpeed;
+        _obstaclesLayerMask = obstaclesLayerMask;
     }
 
 
@@ -32,7 +40,16 @@ public class SpinAttack_PlayerState : IPlayerState
         //_anchor.ParentToOwner();
         _anchor.SetStill();
 
-        StartSpinning().Forget();
+        if (AnchorCollidedWithObstacle())
+        {
+            _finishedPerformingSpinAttack = true;
+        }
+        else
+        {
+            _finishedPerformingSpinAttack = false;
+            SpinAttackDuration().Forget();
+            StartSpinning().Forget();
+        }
     }
 
     public override void Exit()
@@ -47,7 +64,7 @@ public class SpinAttack_PlayerState : IPlayerState
     { 
         _deltaTime = deltaTime;
 
-        if (_movesetInputHandler.IsPullAttack_Released())
+        if (_finishedPerformingSpinAttack)
         {
             _nextState = States.WithoutAnchor;
             return true;
@@ -57,48 +74,82 @@ public class SpinAttack_PlayerState : IPlayerState
     }
 
 
-
-    public async UniTaskVoid StartSpinning()
+    private async UniTaskVoid SpinAttackDuration()
     {
-        float currentDistance = _anchor.CurrentDistanceFromOwner;
-        float maxDistance = _anchor.MaxDistanceFromOwner;
-        float minDistance = 1.0f;
+        _finishedSpinAttackDuration = false;
 
-        float t = Mathf.Min(currentDistance / maxDistance, 1.0f);
+        float duration = 3.0f;
+        float timer = 0.0f;
 
-        float durationPerLoop = 1.0f;
-        int numberOfLoops = 3;
-
-
-
-        Vector3 lookDirection = Vector3.ProjectOnPlane((_anchor.Position - _player.Position).normalized, Vector3.up).normalized;
-        float dot = Vector3.Dot(lookDirection, Vector3.forward);
-        float angle = Mathf.Acos(dot);
-
-
-        if (Vector3.Dot(lookDirection, Vector3.right) < 0)
+        while (!_finishedPerformingSpinAttack && timer < duration)
         {
-            angle *= -1;
+            timer += _deltaTime;
+            await UniTask.Delay(MathUtilities.SecondsToMilliseconds(_deltaTime));
         }
 
-        float spinStart = angle * numberOfLoops;
-        float spinEnd = spinStart + (Mathf.PI * 2 * numberOfLoops);
-        
+
+        if (!_finishedPerformingSpinAttack)
+        {
+            _finishedSpinAttackDuration = true;
+        }        
+    }
+
+    private async UniTaskVoid StartSpinning()
+    {
+        _anchor.ChangeState(Anchor.AnchorStates.OnAir);
+
+        float currentDistance = _anchor.CurrentDistanceFromOwner;
+        float maxDistance = _anchor.MaxDistanceFromOwner - 1.0f;
+        float minDistance = 1.0f;
+
+        float t = Mathf.Min((currentDistance + minDistance) / maxDistance, 1.0f);
+
+        float durationPerLoop = 0.75f;
+        int numberOfLoops = 2;
 
 
+
+        Vector3 floorNormal = Vector3.up;
+        if (Physics.Raycast(_player.Position, Vector3.down, out RaycastHit hit, 10.0f, _obstaclesLayerMask, QueryTriggerInteraction.Ignore))
+        {
+            floorNormal = hit.normal;
+        }
+
+        Vector3 rightDirection = Vector3.ProjectOnPlane(Vector3.right, floorNormal).normalized;
+        Vector3 forwardDirection = Vector3.ProjectOnPlane(Vector3.forward, floorNormal).normalized;
+
+        Vector3 lookDirection = Vector3.ProjectOnPlane((_anchor.Position - _player.Position).normalized, floorNormal).normalized;
+        float dot = Vector3.Dot(lookDirection, forwardDirection);
+
+        float angleOffsetFromOrigin = Mathf.Acos(dot);
+        if (Vector3.Dot(lookDirection, rightDirection) < 0)
+        {
+            angleOffsetFromOrigin *= -1;
+        }
+
+
+        float totalAngleLoops = Mathf.PI * 2 * numberOfLoops;
+        float tAngle = t * totalAngleLoops;
+
+        float spinStart = angleOffsetFromOrigin - tAngle;
+        float spinEnd = spinStart + totalAngleLoops;
+
         
-        while (t < 1.0f)
+        //while (t < 1.0f)
+        while (_movesetInputHandler.IsPullAttack_HoldPressed() && !_finishedSpinAttackDuration && !AnchorCollidedWithObstacle())
         {
             float step = _deltaTime / (numberOfLoops * durationPerLoop);
             t += step;
 
-            float l = Mathf.Lerp(spinStart, spinEnd, t * t);
+            //float spinAngle = Mathf.Lerp(spinStart, spinEnd, t);
+            float spinAngle = spinStart + ((spinEnd - spinStart)* t);
             float spinDistance = Mathf.Lerp(minDistance, maxDistance, t);
 
             Vector3 anchorPosition = Vector3.zero;
             anchorPosition += _player.Position;
-            anchorPosition.x += Mathf.Sin(l) * spinDistance;
-            anchorPosition.z += Mathf.Cos(l) * spinDistance;
+            anchorPosition += rightDirection * Mathf.Sin(spinAngle) * spinDistance;
+            anchorPosition += forwardDirection * Mathf.Cos(spinAngle) * spinDistance;
+
 
             _anchor.Transform.position = anchorPosition;
 
@@ -110,6 +161,22 @@ public class SpinAttack_PlayerState : IPlayerState
             await UniTask.Delay(MathUtilities.SecondsToMilliseconds(_deltaTime));
         }
 
+        _anchor.SpinAttackFinish();        
+
+        await UniTask.WaitUntil(() => !_anchor.IsOnAir());
+        _finishedPerformingSpinAttack = true;
+    }
+
+
+    public bool AnchorCollidedWithObstacle()
+    {
+        if (Physics.CheckSphere(_anchor.Position, 0.15f, _obstaclesLayerMask, QueryTriggerInteraction.Ignore))
+        {
+            return true;
+        }
+
+
+        return false;
     }
 
 

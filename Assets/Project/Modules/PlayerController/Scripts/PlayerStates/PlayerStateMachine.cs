@@ -12,6 +12,7 @@ public class PlayerStateMachine : MonoBehaviour
     [SerializeField] private float _pullingMoveSpeed;
     [SerializeField] private float _pullAttackMoveSpeed;
     [SerializeField, Range(0.0f, 10.0f)] private float _maxAimDuration = 1.0f;
+    [SerializeField] private LayerMask _obstaclesLayerMask;
 
     private ActionMovesetInputHandler _movesetInputHandler;
 
@@ -36,7 +37,7 @@ public class PlayerStateMachine : MonoBehaviour
         ThrowingAnchorState throwingAnchorState = new ThrowingAnchorState(_player, _anchor, _withoutAnchorMoveSpeed, _movesetInputHandler);
         PlacedAnchorPullAttackState placedAnchorPullAttackState = new PlacedAnchorPullAttackState(_player, _anchor, _pullAttackMoveSpeed, _movesetInputHandler);
 
-        SpinAttack_PlayerState spinAttackState = new SpinAttack_PlayerState(_player, _anchor, _movesetInputHandler, _withoutAnchorMoveSpeed);
+        SpinAttack_PlayerState spinAttackState = new SpinAttack_PlayerState(_player, _anchor, _movesetInputHandler, _withoutAnchorMoveSpeed, _obstaclesLayerMask);
 
 
         _states = new Dictionary<IPlayerState.States, IPlayerState>()
