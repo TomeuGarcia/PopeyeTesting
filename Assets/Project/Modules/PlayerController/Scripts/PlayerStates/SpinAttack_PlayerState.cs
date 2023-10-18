@@ -78,7 +78,7 @@ public class SpinAttack_PlayerState : IPlayerState
     {
         _finishedSpinAttackDuration = false;
 
-        float duration = 3.0f;
+        float duration = 2.0f;
         float timer = 0.0f;
 
         while (!_finishedPerformingSpinAttack && timer < duration)
@@ -100,13 +100,13 @@ public class SpinAttack_PlayerState : IPlayerState
 
         float currentDistance = _anchor.CurrentDistanceFromOwner;
         float maxDistance = _anchor.MaxDistanceFromOwner - 1.0f;
-        float minDistance = 1.0f;
+        float minDistance = 0.5f;
 
+        currentDistance = Mathf.Max(currentDistance, minDistance);
         float t = Mathf.Min((currentDistance + minDistance) / maxDistance, 1.0f);
 
-        float durationPerLoop = 0.75f;
-        int numberOfLoops = 2;
-
+        float durationPerLoop = 0.6f;
+        int numberOfLoops = 4;
 
 
         Vector3 floorNormal = Vector3.up;
@@ -114,6 +114,8 @@ public class SpinAttack_PlayerState : IPlayerState
         {
             floorNormal = hit.normal;
         }
+
+
 
         Vector3 rightDirection = Vector3.ProjectOnPlane(Vector3.right, floorNormal).normalized;
         Vector3 forwardDirection = Vector3.ProjectOnPlane(Vector3.forward, floorNormal).normalized;
@@ -138,10 +140,6 @@ public class SpinAttack_PlayerState : IPlayerState
         //while (t < 1.0f)
         while (_movesetInputHandler.IsPullAttack_HoldPressed() && !_finishedSpinAttackDuration && !AnchorCollidedWithObstacle())
         {
-            float step = _deltaTime / (numberOfLoops * durationPerLoop);
-            t += step;
-
-            //float spinAngle = Mathf.Lerp(spinStart, spinEnd, t);
             float spinAngle = spinStart + ((spinEnd - spinStart)* t);
             float spinDistance = Mathf.Lerp(minDistance, maxDistance, t);
 
@@ -150,16 +148,17 @@ public class SpinAttack_PlayerState : IPlayerState
             anchorPosition += rightDirection * Mathf.Sin(spinAngle) * spinDistance;
             anchorPosition += forwardDirection * Mathf.Cos(spinAngle) * spinDistance;
 
-
             _anchor.Transform.position = anchorPosition;
-
-
-            
-
             _player.PlayerController.LookTowardsPosition(_anchor.Position);
+
+            float step = _deltaTime / (numberOfLoops * durationPerLoop);
+            t += step;
 
             await UniTask.Delay(MathUtilities.SecondsToMilliseconds(_deltaTime));
         }
+
+        // TODO try do slowdown
+
 
         _anchor.SpinAttackFinish();        
 
