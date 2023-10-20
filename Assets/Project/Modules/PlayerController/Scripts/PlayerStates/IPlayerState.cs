@@ -30,4 +30,10 @@ public abstract class IPlayerState
     public abstract void Exit();
     public abstract bool Update(float deltaTime);
 
+
+    public virtual void OnDrawGizmos()
+    {
+
+    }
+
 }

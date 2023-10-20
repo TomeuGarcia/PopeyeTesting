@@ -58,6 +58,7 @@ public class PlayerController : MonoBehaviour
 
 
     private Vector3 _contactNormal;
+    public Vector3 ContactNormal => _contactNormal;
     private int _groundContactCount;
     private bool OnGround => _groundContactCount > 0;
 

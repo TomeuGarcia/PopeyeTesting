@@ -3,12 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Anchor : MonoBehaviour
 {
     [Header("COMPONENTS")]
     [SerializeField] private Transform _anchorTransform;
+    [SerializeField] private Transform _anchorMeshTransform;
+    [SerializeField] private Transform _anchorBindLineOrigin;
     [SerializeField] private Rigidbody _rigidbody;
     [SerializeField] private SpringJoint _springJoint;
     [SerializeField] private LineRenderer _trajectoryLine;
@@ -39,7 +42,9 @@ public class Anchor : MonoBehaviour
     [Header("OWNER")]
     [SerializeField] private Transform _ownerTransform;
     [SerializeField] private Vector3 _grabbedPosition = new Vector3(1.0f, 0.0f, 0.5f);
+    [SerializeField] private Vector3 _grabbedRotation = new Vector3(0.0f, 0.0f, 0.0f);
     [SerializeField] private Vector3 _aimingPosition = new Vector3(1.0f, 0.0f, 0.5f);
+    [SerializeField] private Vector3 _aimingRotation = new Vector3(0.0f, 0.0f, 0.0f);
     [SerializeField] private Vector3 _launchDirectionOffset = new Vector3(0.0f, 1.0f, 0.0f);
 
     [Header("PULL")]
@@ -170,6 +175,8 @@ public class Anchor : MonoBehaviour
     {
         ParentToOwner();
         _anchorTransform.localPosition = _grabbedPosition;
+        _anchorTransform.localRotation = Quaternion.identity;
+        _anchorMeshTransform.localRotation = Quaternion.Euler(_grabbedRotation);
 
         ChangeState(AnchorStates.WithOwner);
     }
@@ -215,7 +222,15 @@ public class Anchor : MonoBehaviour
     public void SpinAttackFinish()
     {
         SetMovable();
+        ChangeState(AnchorStates.OnAir);        
+
+        SnapToFloor();
+    }
+    public void SpinAttackFinishTired()
+    {
+        SetMovable();
         ChangeState(AnchorStates.OnAir);
+        _alreadyCollidedWithWall = true;
 
         SnapToFloor();
     }
@@ -224,8 +239,9 @@ public class Anchor : MonoBehaviour
     {
         if (Physics.Raycast(Position, Vector3.down, out RaycastHit hit, 1000f, _obstacleLayers, QueryTriggerInteraction.Ignore))
         {
+            float duration = hit.distance * 0.2f;
             Vector3 snapPosition = hit.point + Vector3.up * 0.2f;
-            _rigidbody.DOMove(snapPosition, hit.distance * 0.2f);
+            _rigidbody.DOMove(snapPosition, duration);
         }
     }
     
@@ -322,10 +338,26 @@ public class Anchor : MonoBehaviour
                 });
 
             _anchorSnapper.ConfirmSnapping(duration);
+
+            Quaternion rotation = _anchorTransform.rotation;
+            _anchorTransform.localRotation = Quaternion.identity;
+            _anchorMeshTransform.rotation = rotation;
+            _anchorMeshTransform.DOLocalRotateQuaternion(_anchorSnapper.GetTargetSnapRotation(), duration).SetEase(Ease.InOutSine);
         }
         else
         {
-            _rigidbody.DOLocalPath(_trajectoryPathPoints, duration, PathType.CatmullRom);
+            _rigidbody.DOLocalPath(_trajectoryPathPoints, duration, PathType.CatmullRom)
+                .OnComplete(() => {
+                    if (IsOnAir())
+                    {
+                        SnapToFloor();
+                    }
+                });
+
+            Quaternion rotation = _anchorTransform.rotation;
+            _anchorTransform.localRotation = Quaternion.identity;
+            _anchorMeshTransform.rotation = rotation;
+            _anchorMeshTransform.DOBlendableLocalRotateBy(_anchorMeshTransform.right * 60, duration).SetEase(Ease.InOutSine);
         }
     }
 
@@ -424,7 +456,7 @@ public class Anchor : MonoBehaviour
     private void UpdateOwnerBinderLine()
     {
         _ownerBinderLine.positionCount = 2;
-        _ownerBinderLine.SetPosition(0, Position);
+        _ownerBinderLine.SetPosition(0, _anchorBindLineOrigin.position);
         _ownerBinderLine.SetPosition(1, _ownerTransform.position);
     }
 
@@ -446,11 +478,15 @@ public class Anchor : MonoBehaviour
 
         _anchorTransform.DOKill();
         _anchorTransform.DOLocalMove(_aimingPosition, duration);
+        _anchorTransform.DOLocalRotateQuaternion(Quaternion.identity, duration);
+        _anchorMeshTransform.DOLocalRotateQuaternion(Quaternion.Euler(_aimingRotation), duration);
     }
     public void SetAimingPositionInstantly()
     {
         _anchorTransform.DOKill();
-        _anchorTransform.localPosition =_aimingPosition;
+        _anchorTransform.localPosition = _aimingPosition;
+        _anchorTransform.localRotation = Quaternion.identity;
+        _anchorMeshTransform.localRotation = Quaternion.Euler(_aimingRotation);
     }
     public void SetGrabbedPosition()
     {
@@ -458,6 +494,8 @@ public class Anchor : MonoBehaviour
 
         _anchorTransform.DOKill();
         _anchorTransform.DOLocalMove(_grabbedPosition, duration);
+        _anchorTransform.DOLocalRotateQuaternion(Quaternion.identity, duration);
+        _anchorMeshTransform.DOLocalRotateQuaternion(Quaternion.Euler(_grabbedRotation), duration);
     }
 
 
@@ -521,7 +559,8 @@ public class Anchor : MonoBehaviour
             return false;
         }
 
-        if (Physics.Raycast(Position, DirectionTowardsOwner(), distance, _obstacleLayers, QueryTriggerInteraction.Ignore))
+        
+        if (Physics.Raycast(_anchorBindLineOrigin.position, DirectionTowardsOwner(), distance, _obstacleLayers, QueryTriggerInteraction.Ignore))
         {
             return false;
         }
@@ -619,6 +658,12 @@ public class Anchor : MonoBehaviour
     {
         _anchorDamageDealer.DealExplosionDamage(Position);
         _staminaSystem.Spend(_explosionStamina);
+    }
+
+
+    public void SetMeshRotation(Quaternion meshDirection)
+    {
+        _anchorMeshTransform.rotation = meshDirection;
     }
 
 }

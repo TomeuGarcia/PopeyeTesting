@@ -3,6 +3,7 @@ using Cysharp.Threading.Tasks.CompilerServices;
 using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 public class SpinAttack_PlayerState : IPlayerState
@@ -46,6 +47,8 @@ public class SpinAttack_PlayerState : IPlayerState
         }
         else
         {
+            _anchor.UnparentFromOwner();
+
             _finishedPerformingSpinAttack = false;
             SpinAttackDuration().Forget();
             StartSpinning().Forget();
@@ -78,12 +81,11 @@ public class SpinAttack_PlayerState : IPlayerState
     {
         _finishedSpinAttackDuration = false;
 
-        float duration = 2.0f;
-        float timer = 0.0f;
+        Timer durationTimer = new Timer(2.0f);
 
-        while (!_finishedPerformingSpinAttack && timer < duration)
+        while (!_finishedPerformingSpinAttack && !durationTimer.HasFinished())
         {
-            timer += _deltaTime;
+            durationTimer.Update(_deltaTime);
             await UniTask.Delay(MathUtilities.SecondsToMilliseconds(_deltaTime));
         }
 
@@ -93,6 +95,8 @@ public class SpinAttack_PlayerState : IPlayerState
             _finishedSpinAttackDuration = true;
         }        
     }
+
+
 
     private async UniTaskVoid StartSpinning()
     {
@@ -109,12 +113,7 @@ public class SpinAttack_PlayerState : IPlayerState
         int numberOfLoops = 4;
 
 
-        Vector3 floorNormal = Vector3.up;
-        if (Physics.Raycast(_player.Position, Vector3.down, out RaycastHit hit, 10.0f, _obstaclesLayerMask, QueryTriggerInteraction.Ignore))
-        {
-            floorNormal = hit.normal;
-        }
-
+        Vector3 floorNormal = _player.PlayerController.ContactNormal;
 
 
         Vector3 rightDirection = Vector3.ProjectOnPlane(Vector3.right, floorNormal).normalized;
@@ -129,6 +128,7 @@ public class SpinAttack_PlayerState : IPlayerState
             angleOffsetFromOrigin *= -1;
         }
 
+        float spinStepSpeed = 1.0f / (numberOfLoops * durationPerLoop);
 
         float totalAngleLoops = Mathf.PI * 2 * numberOfLoops;
         float tAngle = t * totalAngleLoops;
@@ -143,6 +143,7 @@ public class SpinAttack_PlayerState : IPlayerState
             float spinAngle = spinStart + ((spinEnd - spinStart)* t);
             float spinDistance = Mathf.Lerp(minDistance, maxDistance, t);
 
+
             Vector3 anchorPosition = Vector3.zero;
             anchorPosition += _player.Position;
             anchorPosition += rightDirection * Mathf.Sin(spinAngle) * spinDistance;
@@ -151,23 +152,38 @@ public class SpinAttack_PlayerState : IPlayerState
             _anchor.Transform.position = anchorPosition;
             _player.PlayerController.LookTowardsPosition(_anchor.Position);
 
-            float step = _deltaTime / (numberOfLoops * durationPerLoop);
+            _anchor.SetMeshRotation(Quaternion.LookRotation(_player.PlayerController.LookDirection, floorNormal));
+
+            float step = _deltaTime * spinStepSpeed;
             t += step;
+
+            /*
+            _spinTangent = Vector3.zero;
+            _spinTangent += rightDirection * Mathf.Cos(spinAngle);
+            _spinTangent += forwardDirection * -Mathf.Sin(spinAngle);
+            */
 
             await UniTask.Delay(MathUtilities.SecondsToMilliseconds(_deltaTime));
         }
 
-        // TODO try do slowdown
-
-
-        _anchor.SpinAttackFinish();        
+        
+        if (_finishedSpinAttackDuration)
+        {
+            await SpinSlowDown(t, 0.5f, spinStart, spinEnd, maxDistance, floorNormal, rightDirection, forwardDirection, spinStepSpeed);
+            _anchor.SpinAttackFinishTired();
+        }
+        else
+        {
+            _anchor.SpinAttackFinish();
+        }
+        
 
         await UniTask.WaitUntil(() => !_anchor.IsOnAir());
         _finishedPerformingSpinAttack = true;
     }
 
 
-    public bool AnchorCollidedWithObstacle()
+    private bool AnchorCollidedWithObstacle()
     {
         if (Physics.CheckSphere(_anchor.Position, 0.15f, _obstaclesLayerMask, QueryTriggerInteraction.Ignore))
         {
@@ -178,5 +194,39 @@ public class SpinAttack_PlayerState : IPlayerState
         return false;
     }
 
+
+    private async UniTask SpinSlowDown(float spinT, float duration, float spinStart, float spinEnd, float maxDistance, 
+        Vector3 floorNormal, Vector3 rightDirection, Vector3 forwardDirection, float spinStepSpeed)
+    {
+        Timer slowdownTimer = new Timer(duration);
+
+        while (!slowdownTimer.HasFinished())
+        {
+            float spinAngle = spinStart + ((spinEnd - spinStart) * spinT);
+            float spinDistance = maxDistance;
+
+
+
+
+            Vector3 anchorPosition = Vector3.zero;
+            anchorPosition += _player.Position;
+            anchorPosition += rightDirection * Mathf.Sin(spinAngle) * spinDistance;
+            anchorPosition += forwardDirection * Mathf.Cos(spinAngle) * spinDistance;
+            anchorPosition += Vector3.down * (0.5f * slowdownTimer.GetCounterRatio01());
+
+            _anchor.Transform.position = anchorPosition;
+            _player.PlayerController.LookTowardsPosition(_anchor.Position);
+
+            _anchor.SetMeshRotation(Quaternion.LookRotation(_player.PlayerController.LookDirection, floorNormal));
+
+            float step = _deltaTime * spinStepSpeed * (1 - slowdownTimer.GetCounterRatio01());
+            spinT += step;
+
+            slowdownTimer.Update(_deltaTime);
+            await UniTask.Delay(MathUtilities.SecondsToMilliseconds(_deltaTime));
+        }
+
+        
+    }
 
 }

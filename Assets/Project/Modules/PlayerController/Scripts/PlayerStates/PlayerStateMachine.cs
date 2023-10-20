@@ -73,6 +73,11 @@ public class PlayerStateMachine : MonoBehaviour
 
     }
 
+    private void OnDrawGizmos()
+    {
+        _currentState?.OnDrawGizmos();
+    }
+
 
     private void ResetStates()
     {

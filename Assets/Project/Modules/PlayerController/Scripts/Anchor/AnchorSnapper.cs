@@ -92,6 +92,11 @@ public class AnchorSnapper : MonoBehaviour
         _currentSnapTarget.PlaySnapAnimation(durationBeforeReachingTarget).Forget();
     }
 
+    public Quaternion GetTargetSnapRotation()
+    {
+        return _currentSnapTarget.GetSnapRotation();
+    }
+
     public void ClearState()
     {
         _currentSnapTarget = null;
