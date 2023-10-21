@@ -3,10 +3,15 @@ Shader "Unlit/ElectricChain_Shader"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
+
+        _BaseColor("Base Color", Color) = (0.0, 0.0, 1.0, 1.0)
+        _ElectricityColor("Electricity Color", Color) = (1.0, 1.0, 0.4, 1.0)
+        _Scale("Scale", Range(0.0, 1.0)) = 0.3
     }
     SubShader
     {
-        Tags { "RenderType"="Opaque" }
+        Tags {"Queue"="Transparent" "RenderType"="Transparent"}
+        Blend SrcAlpha OneMinusSrcAlpha
         LOD 100
 
         Pass
@@ -32,6 +37,11 @@ Shader "Unlit/ElectricChain_Shader"
 
             sampler2D _MainTex;
             float4 _MainTex_ST;
+
+            fixed4 _BaseColor;
+            fixed4 _ElectricityColor;
+            float _Scale;
+
 
             float sin01(float t)
             {
@@ -65,12 +75,21 @@ Shader "Unlit/ElectricChain_Shader"
                 value = smoothstep(value, 0.1f, 1.0f);
                 */
 
-                float wave1 = sin(X*10) * sin(X*10 + _Time.y*30) * 1.5f;
-                float wave2 = sin(X*25) * sin(_Time.y*20) * 2.9f;
-                float wave3 = sin(X*15);
-                value = sin01(Y*10 + wave1 + wave2 + wave3);
 
-                finalColor.x = value;
+                float time = _Time.y * 0.11f;
+                X += time;
+                X *= _Scale;
+                Y += sin01(time*100) * 10;
+
+                float wave1 = sin(X*10) * sin(X*10 + time*30) * 1.5f;
+                float wave2 = sin(X*25) * sin(time*20) * 2.9f;
+                float wave3 = sin(X*15);
+                float wave4 = sin(X*150) * sin01((X) *380)*2.5f;
+                value = sin01(Y*10 + wave1 + wave2 + wave3 + wave4);
+
+                float steppedValue = step(sin01((time+X*0.05f)*100)*0.2f, value);
+
+                finalColor = lerp(_ElectricityColor, _BaseColor,steppedValue);
                 return finalColor;
             }
             ENDCG

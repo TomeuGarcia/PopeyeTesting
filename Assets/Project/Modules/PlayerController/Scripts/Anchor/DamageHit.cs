@@ -18,12 +18,29 @@ public class DamageHit
     }
 
 
-    private float _knockbackForce;
-    public float KnockbackForce
+
+    private float _knockbackMagnitude;
+    public float KnockbackMagnitude
     {
-        get { return _knockbackForce; }
-        set { _knockbackForce = value; }
+        get { return _knockbackMagnitude; }
+        set { 
+            _knockbackMagnitude = value;
+            KnockbackForce = _knockbackMagnitude * _knockbackDirection;
+        }
     }
+    
+    private Vector3 _knockbackDirection;
+    public Vector3 KnockbackDirection
+    {
+        get { return _knockbackDirection; }
+        set { 
+            _knockbackDirection = value;
+            KnockbackForce = _knockbackMagnitude * _knockbackDirection;
+        }
+    }
+
+    public Vector3 KnockbackForce { get; private set; }
+
 
 
     private float _stunDuration;
@@ -41,13 +58,26 @@ public class DamageHit
     }
 
 
-    public DamageHit(DamageHitTargetType damageHitTargetTypeMask, float damage, Vector3 position, float knockbackForce, float stunDuration)
+    public DamageHit(DamageHitTargetType damageHitTargetTypeMask, float damage, float knockbackMagnitude, float stunDuration)
+    {
+        _damageHitTargetTypeMask = damageHitTargetTypeMask;
+        _damage = damage;
+        _position = Vector3.zero;
+        _stunDuration = stunDuration;
+
+        KnockbackMagnitude = knockbackMagnitude;
+        KnockbackDirection = Vector3.zero;
+    }
+    
+    public DamageHit(DamageHitTargetType damageHitTargetTypeMask, float damage, float knockbackMagnitude, float stunDuration, Vector3 position)
     {
         _damageHitTargetTypeMask = damageHitTargetTypeMask;
         _damage = damage;
         _position = position;
-        _knockbackForce = knockbackForce;
         _stunDuration = stunDuration;
+
+        KnockbackMagnitude = knockbackMagnitude;
+        KnockbackDirection = Vector3.zero;
     }
 
 

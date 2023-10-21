@@ -90,6 +90,4 @@ public class CombatManager : MonoBehaviour
         return !damageHitTypeMask.HasFlag(damageTargetType);
     }
 
-
-
 }

@@ -29,6 +29,7 @@ public class PlayerStateMachine : MonoBehaviour
     private void Init()
     {
         _movesetInputHandler = new ActionMovesetInputHandler();
+        _player.AwakeInit(_movesetInputHandler);
 
         Spawn_PlayerState spawnState = new Spawn_PlayerState(_player, _anchor);
         WithAnchorState withAnchorState = new WithAnchorState(_player, _anchor, _withAnchorMoveSpeed, _movesetInputHandler);

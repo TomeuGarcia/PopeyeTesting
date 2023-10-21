@@ -1,9 +1,7 @@
 using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class Anchor : MonoBehaviour
@@ -23,6 +21,9 @@ public class Anchor : MonoBehaviour
     [SerializeField] private GroundedAnchor _groundedAnchor;
     [SerializeField] private AnchorSnapper _anchorSnapper;
     [SerializeField] private AnchorHealthDrainer _anchorHealthDrainer;
+    [SerializeField] private AnchorElectricChain _anchorElectricChain;
+    public AnchorElectricChain AnchorElectricChain => _anchorElectricChain;
+
     private bool _anchorIsBeingSnapped;
 
     [Header("STAMINA")]
@@ -38,6 +39,8 @@ public class Anchor : MonoBehaviour
     [SerializeField, Range(0.0f, 10.0f)] float _maxThrowDuration = 0.6f;
     [SerializeField, Range(0.0f, 10.0f)] float _minThrowDuration = 0.3f;
     [SerializeField] private AnimationCurve _forceCurveNewTrajectory;
+    [SerializeField] private Transform _anchorTrajectoryEndSpot;
+    private bool _drawDebugLine;
 
     [Header("OWNER")]
     [SerializeField] private Transform _ownerTransform;
@@ -46,6 +49,7 @@ public class Anchor : MonoBehaviour
     [SerializeField] private Vector3 _aimingPosition = new Vector3(1.0f, 0.0f, 0.5f);
     [SerializeField] private Vector3 _aimingRotation = new Vector3(0.0f, 0.0f, 0.0f);
     [SerializeField] private Vector3 _launchDirectionOffset = new Vector3(0.0f, 1.0f, 0.0f);
+    public (Vector3, Vector3) ChainExtremes => (_anchorBindLineOrigin.position, _ownerTransform.position);
 
     [Header("PULL")]
     [SerializeField, Range(0.0f, 20.0f)] private float _pulledTowardsOwnerAccelearation = 2.0f;
@@ -65,6 +69,7 @@ public class Anchor : MonoBehaviour
     [SerializeField, Range(0.0f, 500.0f)] private float _explosionStamina = 100.0f;
 
 
+    public Vector3 OwnerPosition => _ownerTransform.position;
     public Vector3 Position => _anchorTransform.position;
     private Vector3 _throwStartPosition;
 
@@ -98,7 +103,7 @@ public class Anchor : MonoBehaviour
 
 
 
-    private void Awake()
+    public void Awake()
     {
         RespawnReset();
 
@@ -107,6 +112,13 @@ public class Anchor : MonoBehaviour
         _staminaSystem = new StaminaSystem(_requiredDrainedHealth, 0.0f);
         _staminaBar.Init(_staminaSystem);
         _anchorHealthDrainer.AwakeInit(_staminaSystem);
+
+        _drawDebugLine = true;
+    }
+
+    private void Start()
+    {
+        _anchorElectricChain.StartInit(this);
     }
 
     private void Update()
@@ -115,6 +127,11 @@ public class Anchor : MonoBehaviour
 
         //DrawTrajectory(_velocity);
         //ShowTrajectory();
+
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            _drawDebugLine = !_drawDebugLine;
+        }
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -270,8 +287,46 @@ public class Anchor : MonoBehaviour
             _trajectoryPathPoints[i] = trajectoryPosition;
             _currentTrajectoryDebug.SetPosition(i, trajectoryPosition);
         }
+
+        ComputeTrajectoryEndSpot();
     }
-    
+
+    private void ComputeTrajectoryEndSpot()
+    {
+        Vector3 lastTrajectoryPoint = _trajectoryPathPoints[_trajectoryPathPoints.Length - 1];
+
+        Vector3 trajectoryEndPoint = lastTrajectoryPoint;
+        Quaternion trajectoryEndRotation = Quaternion.identity;
+
+        bool hitDuringTrajectory = false;
+
+
+        for (int i = 0; i < _trajectoryPathPoints.Length - 1; ++i)
+        {
+            Vector3 rayVector = _trajectoryPathPoints[i+1] - _trajectoryPathPoints[i];
+
+            if (Physics.Raycast(_trajectoryPathPoints[i], rayVector.normalized, out RaycastHit trajectoryHit, rayVector.magnitude, _obstacleLayers, QueryTriggerInteraction.Ignore))
+            {
+                hitDuringTrajectory = true;
+                trajectoryEndPoint = trajectoryHit.point;
+                Vector3 forward = Vector3.ProjectOnPlane(Vector3.up, trajectoryHit.normal).normalized;
+                trajectoryEndRotation = Quaternion.LookRotation(forward, trajectoryHit.normal);
+                break;
+            }
+        }
+
+
+        if (!hitDuringTrajectory && Physics.Raycast(lastTrajectoryPoint, Vector3.down, out RaycastHit hit, 1000, _obstacleLayers, QueryTriggerInteraction.Ignore))
+        {
+            trajectoryEndPoint = hit.point;
+            trajectoryEndRotation = Quaternion.identity;
+        }
+
+        _anchorTrajectoryEndSpot.position = trajectoryEndPoint;
+        _anchorTrajectoryEndSpot.rotation = trajectoryEndRotation;
+    }
+
+
     private void CorrectTrajectory(float strength01, Vector3 lookDirection)
     {
         ComputeTrajectory(strength01, lookDirection);
@@ -463,13 +518,17 @@ public class Anchor : MonoBehaviour
     public void ShowTrajectory()
     {
         //_trajectoryLine.enabled = true;
-        _currentTrajectoryDebug.enabled = true;
+
+        _currentTrajectoryDebug.enabled = _drawDebugLine;
+        _anchorTrajectoryEndSpot.gameObject.SetActive(true);
     }
     
     public void HideTrajectory()
     {
         //_trajectoryLine.enabled = false;
+
         _currentTrajectoryDebug.enabled = false;
+        _anchorTrajectoryEndSpot.gameObject.SetActive(false);
     }
 
     public void SetAimingPosition()

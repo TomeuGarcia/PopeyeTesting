@@ -15,6 +15,7 @@ public class ActionMovesetInputHandler
     private UnityEngine.InputSystem.InputAction _move;
     private UnityEngine.InputSystem.InputAction _pullAttack;
     private UnityEngine.InputSystem.InputAction _explosionAbility;
+    private UnityEngine.InputSystem.InputAction _electricChainAbility;
 
 
 
@@ -31,6 +32,7 @@ public class ActionMovesetInputHandler
         _move = _playerInputControls.Land.Move;
         _pullAttack = _playerInputControls.Land.PullAttack;
         _explosionAbility = _playerInputControls.Land.ExplosionAbility;
+        _electricChainAbility = _playerInputControls.Land.ElectricChainAbility;
     }
 
     ~ActionMovesetInputHandler()
@@ -119,5 +121,10 @@ public class ActionMovesetInputHandler
     public bool IsExplosionAbility_Pressed()
     {
         return _explosionAbility.WasPressedThisFrame();
+    }
+
+    public bool IsElectricChainAbility_Pressed()
+    {
+        return _electricChainAbility.WasPressedThisFrame();
     }
 }

@@ -29,7 +29,11 @@ public class Player : MonoBehaviour, IHealthTarget, IDamageHitTarget
 
     [HideInInspector] public Vector3 _respawnPosition;
 
-    private void Awake()
+
+    private ActionMovesetInputHandler _movesetInputHandler;
+
+
+    public void AwakeInit(ActionMovesetInputHandler movesetInputHandler)
     {
         _healthSystem = new HealthSystem(_maxHealth);
         _healthBar.Init(_healthSystem);
@@ -40,8 +44,17 @@ public class Player : MonoBehaviour, IHealthTarget, IDamageHitTarget
         _anchorHealthDrainer.Init(this);
 
         _respawnPosition = Position;
+
+        _movesetInputHandler = movesetInputHandler;
     }
 
+    private void Update()
+    {
+        if (_movesetInputHandler.IsElectricChainAbility_Pressed())
+        {
+            _anchor.AnchorElectricChain.ToggleElectricMode();
+        }
+    }
 
 
 
@@ -55,7 +68,7 @@ public class Player : MonoBehaviour, IHealthTarget, IDamageHitTarget
         Vector3 pushDirection = Position - damageHit.Position;
         pushDirection.y = 0;
         pushDirection = pushDirection.normalized;
-        Vector3 pushForce = pushDirection * damageHit.KnockbackForce;
+        Vector3 pushForce = pushDirection * damageHit.KnockbackMagnitude;
         _playerController.GetPushed(pushForce);
 
         float receivedDamage = _healthSystem.TakeDamage(damageHit.Damage);

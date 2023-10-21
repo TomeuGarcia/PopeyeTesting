@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,6 +12,8 @@ public class Enemy : MonoBehaviour, IDamageHitTarget, IMovementInputHandler
     [SerializeField] private PlayerController _enemyController;
     [SerializeField] private Rigidbody _rigidbody;
     [SerializeField] private Transform _attackTarget;
+    [SerializeField] private MeshRenderer _meshRenderer;
+    private Material _meshMaterial;
 
     [Header("MOVE SPEEDS")]
     [SerializeField, Range(0.0f, 100.0f)] private float _maxMoveSpeed = 16.0f;
@@ -76,11 +79,13 @@ public class Enemy : MonoBehaviour, IDamageHitTarget, IMovementInputHandler
 
 
         _contactDamageHit = new DamageHit(CombatManager.Instance.DamageOnlyPlayerPreset,
-            _contactHitDamageAmount, Position, _contactHitKnockbackForce, _contactHitStunDuration);
+            _contactHitDamageAmount, _contactHitKnockbackForce, _contactHitStunDuration);
 
         DisableDealingContactDamage();
 
         _alreadyInitialized = true;
+
+        _meshMaterial = _meshRenderer.material;
     }
 
     private void Update()
@@ -96,6 +101,8 @@ public class Enemy : MonoBehaviour, IDamageHitTarget, IMovementInputHandler
         if (_canDealContactDamage)
         {
             _contactDamageHit.Position = Position;
+            _contactDamageHit.KnockbackDirection = PositioningHelper.Instance.GetDirectionAlignedWithFloor(Position, other.transform.position);
+
             CombatManager.Instance.TryDealDamage(other.gameObject, _contactDamageHit, out DamageHitResult damageHitResult);
         }        
     }
@@ -125,7 +132,7 @@ public class Enemy : MonoBehaviour, IDamageHitTarget, IMovementInputHandler
 
     public DamageHitResult TakeHitDamage(DamageHit damageHit)
     {
-        TakeKnockback(damageHit.Position, damageHit.KnockbackForce);        
+        TakeKnockback(damageHit.KnockbackForce);        
 
         float receivedDamage = _healthSystem.TakeDamage(damageHit.Damage);
         if (_healthSystem.IsDead())
@@ -136,6 +143,8 @@ public class Enemy : MonoBehaviour, IDamageHitTarget, IMovementInputHandler
         {
             GetStunned(damageHit.StunDuration);
         }
+
+        StartTakeDamageAnimation().Forget();
 
         return new DamageHitResult(receivedDamage);
     }
@@ -181,12 +190,11 @@ public class Enemy : MonoBehaviour, IDamageHitTarget, IMovementInputHandler
         _stateMachine.ResetStateMachine();
     }
     
-    private void TakeKnockback(Vector3 originPosition, float knockbackForce)
+    private void TakeKnockback(Vector3 knockbackForce)
     {
         transform.DOKill();
-
-        Vector3 direction = PositioningHelper.Instance.GetDirectionAlignedWithFloor(originPosition, Position);
-        Vector3 pushForce = direction * knockbackForce * _knockbackEffectiveness;
+        
+        Vector3 pushForce = knockbackForce * _knockbackEffectiveness;
 
         _rigidbody.AddForce(pushForce, ForceMode.Impulse);
         
@@ -260,5 +268,17 @@ public class Enemy : MonoBehaviour, IDamageHitTarget, IMovementInputHandler
     public Vector3 GetLookInput()
     {
         return GetHeightIgnoredDirection(Position, TargetPosition);
+    }
+
+
+    private async UniTaskVoid StartTakeDamageAnimation()
+    {
+        for (int i = 0; i < 2; ++i)
+        {
+            _meshMaterial.color = Color.red;
+            await UniTask.Delay(MathUtilities.SecondsToMilliseconds(0.1f));
+            _meshMaterial.color = Color.white;
+            await UniTask.Delay(MathUtilities.SecondsToMilliseconds(0.1f));
+        }        
     }
 }

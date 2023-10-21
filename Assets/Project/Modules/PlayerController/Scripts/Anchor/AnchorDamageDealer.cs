@@ -7,6 +7,7 @@ using UnityEngine.UIElements;
 public class AnchorDamageDealer : MonoBehaviour
 {
     [Header("REFERENCES")]
+    [SerializeField] private Anchor _anchor;
     [SerializeField] private AnchorHealthDrainer _anchorHealthDrainer;
 
     [Header("THROW HIT")]
@@ -62,19 +63,19 @@ public class AnchorDamageDealer : MonoBehaviour
     private void Start()
     {
         _throwHit = new DamageHit(CombatManager.Instance.DamageEnemiesAndDestructiblesPreset, 
-            _throwHitDamage, Vector3.zero, _throwHitKnockbackForce, _throwHitStunDuration);
+            _throwHitDamage, _throwHitKnockbackForce, _throwHitStunDuration);
 
         _groundHit = new DamageHit(CombatManager.Instance.DamageEnemiesDestructiblesAndInteractablesPreset, 
-            _groundHitDamage, Vector3.zero, _groundHitKnockbackForce, _groundHitStunDuration);
+            _groundHitDamage, _groundHitKnockbackForce, _groundHitStunDuration);
 
         _meleeHit = new DamageHit(CombatManager.Instance.DamageOnlyEnemiesPreset, 
-            _meleeHitDamage, Vector3.zero, _meleeHitKnockbackForce, _meleeHitStunDuration);
+            _meleeHitDamage, _meleeHitKnockbackForce, _meleeHitStunDuration);
 
         _pullBackHit = new DamageHit(CombatManager.Instance.DamageOnlyEnemiesPreset, 
-            _pullBackHitDamage, Vector3.zero, _pullBackHitKnockbackForce, _pullBackHitStunDuration);
+            _pullBackHitDamage, _pullBackHitKnockbackForce, _pullBackHitStunDuration);
 
         _explosionHit = new DamageHit(CombatManager.Instance.DamageEnemiesAndDestructiblesPreset, 
-            _explosionHitDamage, Vector3.zero, _explosionHitKnockbackForce, _explosionHitStunDuration);
+            _explosionHitDamage, _explosionHitKnockbackForce, _explosionHitStunDuration);
 
         OnValidate();
     }
@@ -84,21 +85,21 @@ public class AnchorDamageDealer : MonoBehaviour
         if (_throwHit != null)
         {
             _throwHit.Damage = _throwHitDamage;
-            _throwHit.KnockbackForce = _throwHitKnockbackForce;
+            _throwHit.KnockbackMagnitude = _throwHitKnockbackForce;
             _throwHit.StunDuration = _throwHitStunDuration;
         }
         
         if (_groundHit != null)
         {
             _groundHit.Damage = _groundHitDamage;
-            _groundHit.KnockbackForce = _groundHitKnockbackForce;
+            _groundHit.KnockbackMagnitude = _groundHitKnockbackForce;
             _groundHit.StunDuration = _groundHitStunDuration;
         }
         
         if (_meleeHit != null)
         {
             _meleeHit.Damage = _meleeHitDamage;
-            _meleeHit.KnockbackForce = _meleeHitKnockbackForce;
+            _meleeHit.KnockbackMagnitude = _meleeHitKnockbackForce;
             _meleeHit.StunDuration = _meleeHitStunDuration;
         }
         
@@ -110,6 +111,7 @@ public class AnchorDamageDealer : MonoBehaviour
     public void DealThrowHitDamage(GameObject hitObject, Vector3 dealerPosition)
     {
         _throwHit.Position = dealerPosition;
+        _throwHit.KnockbackDirection = PositioningHelper.Instance.GetDirectionAlignedWithFloor(dealerPosition, hitObject.transform.position);
 
         if (TryDealDamage(hitObject, _throwHit, true))
         {
@@ -120,6 +122,7 @@ public class AnchorDamageDealer : MonoBehaviour
     public void DealPullBackDamage(GameObject hitObject, Vector3 dealerPosition)
     {
         _pullBackHit.Position = dealerPosition;
+        _pullBackHit.KnockbackDirection = -PositioningHelper.Instance.GetDirectionAlignedWithFloor(dealerPosition, hitObject.transform.position);
 
         if (TryDealDamage(hitObject, _pullBackHit, true))
         {
@@ -149,6 +152,7 @@ public class AnchorDamageDealer : MonoBehaviour
 
     private void TryDealGroundDamage(Collider collider)
     {
+        _groundHit.KnockbackDirection = PositioningHelper.Instance.GetDirectionAlignedWithFloor(_anchor.Position, collider.transform.position);
         TryDealDamage(collider.gameObject, _groundHit, true);
     }
 
@@ -175,6 +179,7 @@ public class AnchorDamageDealer : MonoBehaviour
 
     private void TryDealExplosionDamage(Collider collider)
     {
+        _explosionHit.KnockbackDirection = PositioningHelper.Instance.GetDirectionAlignedWithFloor(_anchor.Position, collider.transform.position);
         TryDealDamage(collider.gameObject, _explosionHit, false);
     }
 
@@ -196,6 +201,7 @@ public class AnchorDamageDealer : MonoBehaviour
 
     private void TryDealMeleeDamage(Collider collider)
     {
+        _meleeHit.KnockbackDirection = PositioningHelper.Instance.GetDirectionAlignedWithFloor(_anchor.OwnerPosition, collider.transform.position);
         if (TryDealDamage(collider.gameObject, _meleeHit, true))
         {
             SpawnHitEffect(collider.gameObject);

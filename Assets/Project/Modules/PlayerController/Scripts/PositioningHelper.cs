@@ -50,8 +50,7 @@ public class PositioningHelper : MonoBehaviour
 
         if (Physics.Raycast(startPosition, Vector3.down, out RaycastHit hit, _floorProbeDistance, _floorLayerMask, QueryTriggerInteraction.Ignore))
         {
-            Vector3 right = Vector3.Cross(forward, hit.normal).normalized;
-            forward = Vector3.Cross(hit.normal, right).normalized;
+            forward = Vector3.ProjectOnPlane(forward, hit.normal);
         }
 
         return forward;

@@ -109,6 +109,15 @@ namespace InputSystem
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ElectricChainAbility"",
+                    ""type"": ""Button"",
+                    ""id"": ""4421d390-755d-452d-bcf5-d82fea56c89b"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -430,6 +439,28 @@ namespace InputSystem
                     ""action"": ""Melee2"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""bade7e78-7e79-4a9f-b80f-192a8b6cf785"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Desktop"",
+                    ""action"": ""ElectricChainAbility"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""5142576a-b87c-498c-86c7-ccd7e5e60a21"",
+                    ""path"": ""<Gamepad>/buttonEast"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Desktop"",
+                    ""action"": ""ElectricChainAbility"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -474,6 +505,7 @@ namespace InputSystem
             m_Land_PullAttack = m_Land.FindAction("PullAttack", throwIfNotFound: true);
             m_Land_ExplosionAbility = m_Land.FindAction("ExplosionAbility", throwIfNotFound: true);
             m_Land_Melee2 = m_Land.FindAction("Melee2", throwIfNotFound: true);
+            m_Land_ElectricChainAbility = m_Land.FindAction("ElectricChainAbility", throwIfNotFound: true);
         }
 
         public void Dispose()
@@ -542,6 +574,7 @@ namespace InputSystem
         private readonly InputAction m_Land_PullAttack;
         private readonly InputAction m_Land_ExplosionAbility;
         private readonly InputAction m_Land_Melee2;
+        private readonly InputAction m_Land_ElectricChainAbility;
         public struct LandActions
         {
             private @PlayerInputControls m_Wrapper;
@@ -555,6 +588,7 @@ namespace InputSystem
             public InputAction @PullAttack => m_Wrapper.m_Land_PullAttack;
             public InputAction @ExplosionAbility => m_Wrapper.m_Land_ExplosionAbility;
             public InputAction @Melee2 => m_Wrapper.m_Land_Melee2;
+            public InputAction @ElectricChainAbility => m_Wrapper.m_Land_ElectricChainAbility;
             public InputActionMap Get() { return m_Wrapper.m_Land; }
             public void Enable() { Get().Enable(); }
             public void Disable() { Get().Disable(); }
@@ -591,6 +625,9 @@ namespace InputSystem
                     @Melee2.started -= m_Wrapper.m_LandActionsCallbackInterface.OnMelee2;
                     @Melee2.performed -= m_Wrapper.m_LandActionsCallbackInterface.OnMelee2;
                     @Melee2.canceled -= m_Wrapper.m_LandActionsCallbackInterface.OnMelee2;
+                    @ElectricChainAbility.started -= m_Wrapper.m_LandActionsCallbackInterface.OnElectricChainAbility;
+                    @ElectricChainAbility.performed -= m_Wrapper.m_LandActionsCallbackInterface.OnElectricChainAbility;
+                    @ElectricChainAbility.canceled -= m_Wrapper.m_LandActionsCallbackInterface.OnElectricChainAbility;
                 }
                 m_Wrapper.m_LandActionsCallbackInterface = instance;
                 if (instance != null)
@@ -622,6 +659,9 @@ namespace InputSystem
                     @Melee2.started += instance.OnMelee2;
                     @Melee2.performed += instance.OnMelee2;
                     @Melee2.canceled += instance.OnMelee2;
+                    @ElectricChainAbility.started += instance.OnElectricChainAbility;
+                    @ElectricChainAbility.performed += instance.OnElectricChainAbility;
+                    @ElectricChainAbility.canceled += instance.OnElectricChainAbility;
                 }
             }
         }
@@ -646,6 +686,7 @@ namespace InputSystem
             void OnPullAttack(InputAction.CallbackContext context);
             void OnExplosionAbility(InputAction.CallbackContext context);
             void OnMelee2(InputAction.CallbackContext context);
+            void OnElectricChainAbility(InputAction.CallbackContext context);
         }
     }
 }

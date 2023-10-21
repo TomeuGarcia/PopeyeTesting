@@ -945,6 +945,18 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 2776512423231409072}
     m_Modifications:
+    - target: {fileID: 8857925627018060562, guid: 128cba4ef838fca49871cde8658e6890, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8857925627018060562, guid: 128cba4ef838fca49871cde8658e6890, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8857925627018060562, guid: 128cba4ef838fca49871cde8658e6890, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 9062464611168206042, guid: 128cba4ef838fca49871cde8658e6890, type: 3}
       propertyPath: _meleeHitBoxNotifier
       value: 

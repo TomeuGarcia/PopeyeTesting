@@ -1106,6 +1106,8 @@ MonoBehaviour:
   _stateMachine: {fileID: 4108343465357452361}
   _enemyController: {fileID: 4108343465357452362}
   _rigidbody: {fileID: 4108343465357452364}
+  _attackTarget: {fileID: 0}
+  _meshRenderer: {fileID: 4108343464942315911}
   _maxMoveSpeed: 16
   _knockbackEffectiveness: 1
   _maxHealth: 50
