@@ -103,6 +103,16 @@ public class WithoutAnchorState : IPlayerState
         }
         
         
+        if (_movesetInputHandler.IsPullAttack_Pressed())
+        {
+            _anchor.SnapToFloorAndSetStill();
+
+            _nextState = States.SpinAttack;
+            return true;
+        }
+        
+
+        /*
         if ((_movesetInputHandler.IsPullAttack_HoldPressed() || _queuedPullAttack) && _anchor.CanDoChargedPullAttack())
         {
             _anchor.SnapToFloorAndSetStill();
@@ -110,7 +120,7 @@ public class WithoutAnchorState : IPlayerState
             _nextState = States.PlacedAnchorPullAttack;
             return true;
         }
-        
+        */
 
         if (_movesetInputHandler.IsExplosionAbility_Pressed() && _anchor.CanUseExplosionAbility())
         {

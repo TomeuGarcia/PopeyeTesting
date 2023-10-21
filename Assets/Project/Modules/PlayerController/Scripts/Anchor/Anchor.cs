@@ -3,12 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Anchor : MonoBehaviour
 {
     [Header("COMPONENTS")]
     [SerializeField] private Transform _anchorTransform;
+    [SerializeField] private Transform _anchorMeshTransform;
+    [SerializeField] private Transform _anchorBindLineOrigin;
     [SerializeField] private Rigidbody _rigidbody;
     [SerializeField] private SpringJoint _springJoint;
     [SerializeField] private LineRenderer _trajectoryLine;
@@ -39,7 +42,9 @@ public class Anchor : MonoBehaviour
     [Header("OWNER")]
     [SerializeField] private Transform _ownerTransform;
     [SerializeField] private Vector3 _grabbedPosition = new Vector3(1.0f, 0.0f, 0.5f);
+    [SerializeField] private Vector3 _grabbedRotation = new Vector3(0.0f, 0.0f, 0.0f);
     [SerializeField] private Vector3 _aimingPosition = new Vector3(1.0f, 0.0f, 0.5f);
+    [SerializeField] private Vector3 _aimingRotation = new Vector3(0.0f, 0.0f, 0.0f);
     [SerializeField] private Vector3 _launchDirectionOffset = new Vector3(0.0f, 1.0f, 0.0f);
 
     [Header("PULL")]
@@ -63,6 +68,8 @@ public class Anchor : MonoBehaviour
     public Vector3 Position => _anchorTransform.position;
     private Vector3 _throwStartPosition;
 
+    public Transform Transform => _anchorTransform;
+
     private bool _canMeleeAttack = true;
     public bool CanMeleeAttack
     {
@@ -70,6 +77,12 @@ public class Anchor : MonoBehaviour
         set { _canMeleeAttack = value; }
     }
 
+
+    public float MinDistanceFromOwner => _springJoint.minDistance;
+    public float MaxDistanceFromOwner => _springJoint.maxDistance;
+    public float CurrentDistanceFromOwner => Vector3.Distance(Position, _ownerTransform.position);
+
+    private bool _alreadyCollidedWithWall;
 
 
 
@@ -87,10 +100,7 @@ public class Anchor : MonoBehaviour
 
     private void Awake()
     {
-        InstantReturnToOwner();
-        HideTrajectory();
-
-        SetStill();
+        RespawnReset();
 
         _trajectoryPathPoints = new Vector3[_maxForceTrajectory.positionCount];
 
@@ -115,16 +125,22 @@ public class Anchor : MonoBehaviour
         _rigidbody.DOKill();
 
         Vector3 normal = collision.contacts[0].normal;
-        if (Vector3.Dot(normal, Vector3.up) < -0.7f)
+        if (Vector3.Dot(normal, Vector3.up) < 0.5f)
         {
-            _rigidbody.AddForce((Vector3.down-normal).normalized * _rigidbody.velocity.sqrMagnitude, ForceMode.Impulse);
+            SnapToFloor();
+            _anchorDamageDealer.DealGroundHitDamage(Position, _throwStrength01);
+            _alreadyCollidedWithWall = true;
             return;
         }
 
-        SetStill();
-        _currentState = AnchorStates.OnGround;
 
-        _anchorDamageDealer.DealGroundHitDamage(Position, _throwStrength01);
+        SetStill();
+        ChangeState(AnchorStates.OnGround);
+
+        if (!_alreadyCollidedWithWall)
+        {
+            _anchorDamageDealer.DealGroundHitDamage(Position, _throwStrength01);
+        }        
         
         _groundedAnchor.gameObject.SetActive(true);
     }
@@ -141,22 +157,47 @@ public class Anchor : MonoBehaviour
         }
     }
 
+    public void RespawnReset()
+    {
+        _rigidbody.velocity = Vector3.zero;
+        _rigidbody.angularVelocity = Vector3.zero;
+
+        _springJoint.axis = Vector3.Scale(_springJoint.axis, Vector3.one);
+        _rigidbody.DOKill();
+
+        InstantReturnToOwner();
+        HideTrajectory();
+
+        SetStill();
+    }
+
     public void InstantReturnToOwner()
     {
-        _anchorTransform.SetParent(_ownerTransform);
+        ParentToOwner();
         _anchorTransform.localPosition = _grabbedPosition;
+        _anchorTransform.localRotation = Quaternion.identity;
+        _anchorMeshTransform.localRotation = Quaternion.Euler(_grabbedRotation);
 
-        _currentState = AnchorStates.WithOwner;
+        ChangeState(AnchorStates.WithOwner);
     }
     
     public void ReturnToOwner()
     {
         SetStill();
         _groundedAnchor.gameObject.SetActive(false);
-        _anchorTransform.SetParent(_ownerTransform);
+        ParentToOwner();
         SetGrabbedPosition();
 
-        _currentState = AnchorStates.WithOwner;
+        ChangeState(AnchorStates.WithOwner);
+    }
+
+    public void ParentToOwner()
+    {
+        _anchorTransform.SetParent(_ownerTransform);
+    }
+    public void UnparentFromOwner()
+    {
+        _anchorTransform.SetParent(null);
     }
 
     public void GetPulledTowardsOwner()
@@ -170,12 +211,38 @@ public class Anchor : MonoBehaviour
         CorrectTrajectory(strength01, lookDirection);
 
         SetAimingPositionInstantly();
-        _anchorTransform.SetParent(null);
+        UnparentFromOwner();
 
         LaunchAnchor();
 
 
-        _currentState = AnchorStates.OnAir;        
+        ChangeState(AnchorStates.OnAir);
+    }
+
+    public void SpinAttackFinish()
+    {
+        SetMovable();
+        ChangeState(AnchorStates.OnAir);        
+
+        SnapToFloor();
+    }
+    public void SpinAttackFinishTired()
+    {
+        SetMovable();
+        ChangeState(AnchorStates.OnAir);
+        _alreadyCollidedWithWall = true;
+
+        SnapToFloor();
+    }
+
+    public void SnapToFloor()
+    {
+        if (Physics.Raycast(Position, Vector3.down, out RaycastHit hit, 1000f, _obstacleLayers, QueryTriggerInteraction.Ignore))
+        {
+            float duration = hit.distance * 0.2f;
+            Vector3 snapPosition = hit.point + Vector3.up * 0.2f;
+            _rigidbody.DOMove(snapPosition, duration);
+        }
     }
     
     
@@ -235,6 +302,11 @@ public class Anchor : MonoBehaviour
     public void ChangeState(AnchorStates newState)
     {
         _currentState = newState;
+
+        if (newState == AnchorStates.OnAir)
+        {
+            _alreadyCollidedWithWall = false;
+        }
     }
 
 
@@ -246,8 +318,6 @@ public class Anchor : MonoBehaviour
 
     private void LaunchAnchor()
     {
-        _currentState = AnchorStates.OnAir;
-
         SetMovable();
         //_rigidbody.AddForce(startVelocity, ForceMode.Impulse);
         float trajectoryDistance = Vector3.Distance(_trajectoryPathPoints[0], _trajectoryPathPoints[_trajectoryPathPoints.Length - 1]) * 0.15f;
@@ -268,10 +338,26 @@ public class Anchor : MonoBehaviour
                 });
 
             _anchorSnapper.ConfirmSnapping(duration);
+
+            Quaternion rotation = _anchorTransform.rotation;
+            _anchorTransform.localRotation = Quaternion.identity;
+            _anchorMeshTransform.rotation = rotation;
+            _anchorMeshTransform.DOLocalRotateQuaternion(_anchorSnapper.GetTargetSnapRotation(), duration).SetEase(Ease.InOutSine);
         }
         else
         {
-            _rigidbody.DOLocalPath(_trajectoryPathPoints, duration, PathType.CatmullRom);
+            _rigidbody.DOLocalPath(_trajectoryPathPoints, duration, PathType.CatmullRom)
+                .OnComplete(() => {
+                    if (IsOnAir())
+                    {
+                        SnapToFloor();
+                    }
+                });
+
+            Quaternion rotation = _anchorTransform.rotation;
+            _anchorTransform.localRotation = Quaternion.identity;
+            _anchorMeshTransform.rotation = rotation;
+            _anchorMeshTransform.DOBlendableLocalRotateBy(_anchorMeshTransform.right * 60, duration).SetEase(Ease.InOutSine);
         }
     }
 
@@ -324,7 +410,7 @@ public class Anchor : MonoBehaviour
         SetStill();
     }
 
-    private void SetStill()
+    public void SetStill()
     {
         _rigidbody.velocity = Vector3.zero;
         _rigidbody.angularVelocity = Vector3.zero;
@@ -336,7 +422,7 @@ public class Anchor : MonoBehaviour
 
         _isBeingPulled = false;
     }
-    private void SetMovable()
+    public void SetMovable()
     {
         _rigidbody.velocity = Vector3.zero;
         _rigidbody.angularVelocity = Vector3.zero;
@@ -364,13 +450,13 @@ public class Anchor : MonoBehaviour
     private void SetSnapped()
     {
         SetStill();
-        _currentState = AnchorStates.OnGround;
+        ChangeState(AnchorStates.OnGround);
     }
 
     private void UpdateOwnerBinderLine()
     {
         _ownerBinderLine.positionCount = 2;
-        _ownerBinderLine.SetPosition(0, Position);
+        _ownerBinderLine.SetPosition(0, _anchorBindLineOrigin.position);
         _ownerBinderLine.SetPosition(1, _ownerTransform.position);
     }
 
@@ -392,11 +478,15 @@ public class Anchor : MonoBehaviour
 
         _anchorTransform.DOKill();
         _anchorTransform.DOLocalMove(_aimingPosition, duration);
+        _anchorTransform.DOLocalRotateQuaternion(Quaternion.identity, duration);
+        _anchorMeshTransform.DOLocalRotateQuaternion(Quaternion.Euler(_aimingRotation), duration);
     }
     public void SetAimingPositionInstantly()
     {
         _anchorTransform.DOKill();
-        _anchorTransform.localPosition =_aimingPosition;
+        _anchorTransform.localPosition = _aimingPosition;
+        _anchorTransform.localRotation = Quaternion.identity;
+        _anchorMeshTransform.localRotation = Quaternion.Euler(_aimingRotation);
     }
     public void SetGrabbedPosition()
     {
@@ -404,6 +494,8 @@ public class Anchor : MonoBehaviour
 
         _anchorTransform.DOKill();
         _anchorTransform.DOLocalMove(_grabbedPosition, duration);
+        _anchorTransform.DOLocalRotateQuaternion(Quaternion.identity, duration);
+        _anchorMeshTransform.DOLocalRotateQuaternion(Quaternion.Euler(_grabbedRotation), duration);
     }
 
 
@@ -467,7 +559,8 @@ public class Anchor : MonoBehaviour
             return false;
         }
 
-        if (Physics.Raycast(Position, DirectionTowardsOwner(), distance, _obstacleLayers, QueryTriggerInteraction.Ignore))
+        
+        if (Physics.Raycast(_anchorBindLineOrigin.position, DirectionTowardsOwner(), distance, _obstacleLayers, QueryTriggerInteraction.Ignore))
         {
             return false;
         }
@@ -540,8 +633,8 @@ public class Anchor : MonoBehaviour
         await Task.Delay((int)(duration * 1000));
 
         //_anchorDamageDealer.DealGroundHitDamage(Position, Mathf.Min(1.0f, distance / _springJoint.maxDistance));
-        
-        _currentState = AnchorStates.OnAir;
+
+        ChangeState(AnchorStates.OnAir);
 
         _throwStrength01 = 1.0f;
 
@@ -565,6 +658,12 @@ public class Anchor : MonoBehaviour
     {
         _anchorDamageDealer.DealExplosionDamage(Position);
         _staminaSystem.Spend(_explosionStamina);
+    }
+
+
+    public void SetMeshRotation(Quaternion meshDirection)
+    {
+        _anchorMeshTransform.rotation = meshDirection;
     }
 
 }

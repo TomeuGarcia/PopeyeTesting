@@ -75,7 +75,10 @@ public class WithAnchorState : IPlayerState
 
         if (_movesetInputHandler.IsMelee2_Pressed())
         {
-            MeleeAttack();
+            //MeleeAttack();
+
+            _nextState = States.SpinAttack;
+            return true;
         }
 
         return false;

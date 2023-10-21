@@ -11,15 +11,22 @@ public class AnchorSnapTarget : MonoBehaviour
     [SerializeField] private Transform _clawsTransform;
     [SerializeField] private Transform[] _claws;
     public Vector3 SnapPosition => _snapSpot.position;
+    public Vector3 LookDirection => transform.up;
+    public Vector3 UpDirection => -transform.right;
 
 
 
     public bool CanSnapFromPosition(Vector3 position)
     {
         Vector3 direction = (position - transform.position).normalized;
-        float dot = Vector3.Dot(direction, transform.up);
+        float dot = Vector3.Dot(direction, LookDirection);
 
         return dot > 0.0f;
+    }
+
+    public Quaternion GetSnapRotation()
+    {
+        return Quaternion.AngleAxis(-45.0f, LookDirection) * Quaternion.LookRotation(-LookDirection, UpDirection);
     }
 
 

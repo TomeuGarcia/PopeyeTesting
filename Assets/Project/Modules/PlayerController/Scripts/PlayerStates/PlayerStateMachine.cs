@@ -12,6 +12,7 @@ public class PlayerStateMachine : MonoBehaviour
     [SerializeField] private float _pullingMoveSpeed;
     [SerializeField] private float _pullAttackMoveSpeed;
     [SerializeField, Range(0.0f, 10.0f)] private float _maxAimDuration = 1.0f;
+    [SerializeField] private LayerMask _obstaclesLayerMask;
 
     private ActionMovesetInputHandler _movesetInputHandler;
 
@@ -29,20 +30,25 @@ public class PlayerStateMachine : MonoBehaviour
     {
         _movesetInputHandler = new ActionMovesetInputHandler();
 
+        Spawn_PlayerState spawnState = new Spawn_PlayerState(_player, _anchor);
         WithAnchorState withAnchorState = new WithAnchorState(_player, _anchor, _withAnchorMoveSpeed, _movesetInputHandler);
         WithoutAnchorState withoutAnchorState = new WithoutAnchorState(_player, _anchor, _withoutAnchorMoveSpeed, _pullingMoveSpeed, _movesetInputHandler);
         AimingThrowAnchorState aimingThrowAnchorState = new AimingThrowAnchorState(_player, _anchor, _aimingMoveSpeed, _movesetInputHandler, _maxAimDuration);
         ThrowingAnchorState throwingAnchorState = new ThrowingAnchorState(_player, _anchor, _withoutAnchorMoveSpeed, _movesetInputHandler);
         PlacedAnchorPullAttackState placedAnchorPullAttackState = new PlacedAnchorPullAttackState(_player, _anchor, _pullAttackMoveSpeed, _movesetInputHandler);
 
+        SpinAttack_PlayerState spinAttackState = new SpinAttack_PlayerState(_player, _anchor, _movesetInputHandler, _withoutAnchorMoveSpeed, _obstaclesLayerMask);
+
 
         _states = new Dictionary<IPlayerState.States, IPlayerState>()
         {
+            { IPlayerState.States.Spawn, spawnState },
             { IPlayerState.States.WithAnchor, withAnchorState },
             { IPlayerState.States.WithoutAnchor, withoutAnchorState },
             { IPlayerState.States.AimingThrowAnchor, aimingThrowAnchorState },
             { IPlayerState.States.ThrowingAnchor, throwingAnchorState },
-            { IPlayerState.States.PlacedAnchorPullAttack, placedAnchorPullAttackState }
+            { IPlayerState.States.PlacedAnchorPullAttack, placedAnchorPullAttackState },
+            { IPlayerState.States.SpinAttack, spinAttackState }
         };
 
         _currentState = _states[IPlayerState.States.WithAnchor];
@@ -58,8 +64,27 @@ public class PlayerStateMachine : MonoBehaviour
             _currentState = _states[_currentState.NextState];
             _currentState.Enter();
         }
+
+
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            ResetStates();
+        }
+
     }
 
+    private void OnDrawGizmos()
+    {
+        _currentState?.OnDrawGizmos();
+    }
+
+
+    private void ResetStates()
+    {
+        _currentState.Exit();
+        _currentState = _states[IPlayerState.States.Spawn];
+        _currentState.Enter();
+    }
 
 
 }

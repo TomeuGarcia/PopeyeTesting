@@ -58,6 +58,7 @@ public class PlayerController : MonoBehaviour
 
 
     private Vector3 _contactNormal;
+    public Vector3 ContactNormal => _contactNormal;
     private int _groundContactCount;
     private bool OnGround => _groundContactCount > 0;
 
@@ -280,6 +281,12 @@ public class PlayerController : MonoBehaviour
         _lookTransform.localRotation = Quaternion.RotateTowards(_lookTransform.localRotation, goalRotation, Time.deltaTime * _lookSpeed);
     }
 
+    public void LookTowardsPosition(Vector3 lookPosition)
+    {
+        Vector3 lookDirection = ProjectOnPlane(lookPosition - _rigidbody.position, Vector3.up).normalized;
+
+        _lookTransform.localRotation = Quaternion.LookRotation(lookDirection, Vector3.up);
+    }
 
 
     public void GetPushed(Vector3 pushForce)
@@ -288,5 +295,10 @@ public class PlayerController : MonoBehaviour
     }
 
 
+    public void ResetRigidbody()
+    {
+        _rigidbody.velocity = Vector3.zero;
+        _rigidbody.angularVelocity = Vector3.zero;
+    }
 
 }

@@ -454,6 +454,9 @@ MonoBehaviour:
   _pullingMoveSpeed: 1
   _pullAttackMoveSpeed: 1
   _maxAimDuration: 0.5
+  _obstaclesLayerMask:
+    serializedVersion: 2
+    m_Bits: 257
 --- !u!1 &2776512423981775297
 GameObject:
   m_ObjectHideFlags: 0

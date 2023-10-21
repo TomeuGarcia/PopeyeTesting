@@ -7,11 +7,13 @@ public abstract class IPlayerState
     public enum States
     {
         None,
+        Spawn,
         WithAnchor,
         WithoutAnchor,
         AimingThrowAnchor,
         ThrowingAnchor,
-        PlacedAnchorPullAttack
+        PlacedAnchorPullAttack,
+        SpinAttack
     }
 
     protected States _nextState;
@@ -27,5 +29,11 @@ public abstract class IPlayerState
     protected abstract void DoEnter();
     public abstract void Exit();
     public abstract bool Update(float deltaTime);
+
+
+    public virtual void OnDrawGizmos()
+    {
+
+    }
 
 }
