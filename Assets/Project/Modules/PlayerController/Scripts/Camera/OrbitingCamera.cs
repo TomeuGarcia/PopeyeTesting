@@ -13,7 +13,7 @@ public class OrbitingCamera : MonoBehaviour
     private Vector3 _focusPoint;
     [HideInInspector] public Vector3 focusPointOffset;
 
-    [SerializeField, Range(1.0f, 100.0f)] private float _distance;
+    [SerializeField, Range(1.0f, 300.0f)] public float _distance;
     [SerializeField, Range(0.0f, 10.0f)] private float _noFocusRadius;
 
     [SerializeField, Range(0.0f, 1.0f)] private float _stillFocusRecentering = 0.5f;
