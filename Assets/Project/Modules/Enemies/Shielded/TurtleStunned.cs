@@ -13,6 +13,12 @@ public class TurtleStunned : MonoBehaviour
     private float _stunnedTimer= 0f;
     
     public bool Stunned => _stunned;
+
+    private void Awake()
+    {
+        _targetRotation = Quaternion.identity;
+    }
+
     public void StunnedAnim()
     {
         _stunned = true;
